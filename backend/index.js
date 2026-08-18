@@ -11,6 +11,13 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Servir archivos estáticos del frontend en producción
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+    console.log("[Backend] Sirviendo archivos estáticos del frontend desde:", frontendDist);
+}
+
 // Dedicated directory for documents in workspace root
 const docsDir = path.join(__dirname, '..', 'documentos_tramite');
 if (!fs.existsSync(docsDir)) {
@@ -495,6 +502,19 @@ app.post('/api/auth/users/update-role', async (req, res) => {
     } catch (error) {
         console.error("Error al actualizar rol de usuario:", error);
         res.status(500).json({ error: "Error en el servidor al actualizar rol de usuario." });
+    }
+});
+
+// Redirigir cualquier otra petición al index.html del frontend en producción
+app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/documentos')) {
+        return next();
+    }
+    const indexPath = path.join(__dirname, '..', 'frontend', 'dist', 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.send("Servidor Backend activo. El frontend aún no ha sido compilado (corre 'npm run build').");
     }
 });
 
