@@ -93,6 +93,11 @@ window.ActivoFlow = {
         } else {
             this.updateSupabaseBadge(false);
         }
+
+        // Validate active session status (Logout if deactivated)
+        if (typeof AF !== 'undefined' && AF.checkActiveSessionStatus) {
+            AF.checkActiveSessionStatus();
+        }
     },
 
     // Sync state with LocalStorage and Supabase

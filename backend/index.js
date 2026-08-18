@@ -492,16 +492,28 @@ app.post('/api/auth/users/update-role', async (req, res) => {
         return res.status(400).json({ error: "ID de usuario y rol son requeridos." });
     }
     try {
-        if (userId === 'local_default') {
-            return res.status(400).json({ error: "No se puede cambiar el rol del usuario administrador principal de desarrollo." });
-        }
-
         await dbRun("UPDATE usuarios SET role = ? WHERE id = ?", [role, userId]);
         console.log(`[Backend] Rol de usuario ${userId} actualizado a ${role}`);
         res.json({ success: true, message: "Rol de usuario actualizado con éxito." });
     } catch (error) {
         console.error("Error al actualizar rol de usuario:", error);
         res.status(500).json({ error: "Error en el servidor al actualizar rol de usuario." });
+    }
+});
+
+// Eliminar un usuario
+app.post('/api/auth/users/delete', async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) {
+        return res.status(400).json({ error: "ID de usuario es requerido." });
+    }
+    try {
+        await dbRun("DELETE FROM usuarios WHERE id = ?", [userId]);
+        console.log(`[Backend] Usuario ${userId} eliminado.`);
+        res.json({ success: true, message: "Usuario eliminado con éxito." });
+    } catch (error) {
+        console.error("Error al eliminar usuario:", error);
+        res.status(500).json({ error: "Error en el servidor al eliminar usuario." });
     }
 });
 

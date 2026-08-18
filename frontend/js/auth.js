@@ -360,6 +360,28 @@
         }
     };
 
+    // Check if the current user session is still active
+    AF.checkActiveSessionStatus = function() {
+        const localSession = localStorage.getItem("activoflow_local_session");
+        if (localSession) {
+            try {
+                const user = JSON.parse(localSession);
+                if (AF.state && AF.state.usuarios) {
+                    const dbUser = AF.state.usuarios.find(u => u.id === user.id);
+                    if (dbUser && dbUser.active === 0) {
+                        AF.showToast("Tu cuenta ha sido desactivada por un administrador.", "danger");
+                        setTimeout(() => {
+                            localStorage.removeItem("activoflow_local_session");
+                            window.location.reload();
+                        }, 1500);
+                    }
+                }
+            } catch (e) {
+                console.error("Error validating session status:", e);
+            }
+        }
+    };
+
     // Logout Helper
     AF.logout = async function() {
         AF.showToast("Cerrando sesión...", "info");
@@ -418,9 +440,9 @@
             const isCurrentUser = (AF.currentUser && AF.currentUser.id === u.id);
             const isDefaultAdmin = (u.id === 'local_default');
 
-            // Render Role dropdown for admins, except for current user and system default user
+            // Render Role dropdown for admins for ALL users
             let roleHtml = "";
-            if (currentIsAdmin && !isCurrentUser && !isDefaultAdmin) {
+            if (currentIsAdmin) {
                 roleHtml = `
                     <div style="width: 120px;">
                         <select class="select-user-role" data-id="${u.id}" data-original-val="${u.role || 'Administrador'}" style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary); border-radius: var(--radius-sm); cursor: pointer; outline: none;">
@@ -442,9 +464,14 @@
                 const btnText = isActive ? 'Desactivar' : 'Activar';
                 const btnClass = isActive ? 'btn-deactivate-user' : 'btn-activate-user';
                 actionBtnHtml = `
-                    <button type="button" class="btn btn-outline btn-xs ${btnClass}" data-id="${u.id}" data-active="${isActive ? 'false' : 'true'}" style="padding: 4px 8px; font-size: 11px; height: auto; color: ${btnColor}; border-color: ${btnColor}40; background: transparent; cursor: pointer;">
-                        ${btnText}
-                    </button>
+                    <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                        <button type="button" class="btn btn-outline btn-xs ${btnClass}" data-id="${u.id}" data-active="${isActive ? 'false' : 'true'}" style="padding: 4px 8px; font-size: 11px; height: auto; color: ${btnColor}; border-color: ${btnColor}40; background: transparent; cursor: pointer;">
+                            ${btnText}
+                        </button>
+                        <button type="button" class="btn btn-outline btn-xs btn-delete-user" data-id="${u.id}" style="padding: 4px 8px; font-size: 11px; height: auto; color: #f43f5e; border-color: #f43f5e40; background: transparent; cursor: pointer;">
+                            Eliminar
+                        </button>
+                    </div>
                 `;
             }
 
@@ -596,6 +623,50 @@
                     } catch (err) {
                         console.error("Error toggling user status:", err);
                         AF.showToast("Error de conexión al cambiar estado.", "danger");
+                    }
+                }
+            });
+        });
+
+        // Bind click actions to delete user
+        tableBody.querySelectorAll(".btn-delete-user").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const userId = btn.getAttribute("data-id");
+
+                if (confirm("¿Estás seguro de que deseas eliminar permanentemente a este usuario?")) {
+                    try {
+                        if (AF.useBackend) {
+                            const res = await fetch("/api/auth/users/delete", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ userId })
+                            });
+
+                            if (res.ok) {
+                                AF.showToast("Usuario eliminado correctamente.", "success");
+                                if (AF.initStore) {
+                                    await AF.initStore();
+                                }
+                                AF.renderUsersTable();
+                            } else {
+                                const err = await res.json();
+                                AF.showToast(err.error || "Error al eliminar usuario.", "danger");
+                            }
+                        } else {
+                            // Local/offline fallback
+                            const idx = AF.state.usuarios.findIndex(user => user.id === userId);
+                            if (idx !== -1) {
+                                AF.state.usuarios.splice(idx, 1);
+                                localStorage.setItem("activoflow_state", JSON.stringify(AF.state));
+                                AF.showToast("Usuario eliminado localmente.", "success");
+                                AF.renderUsersTable();
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error deleting user:", err);
+                        AF.showToast("Error de conexión al eliminar usuario.", "danger");
                     }
                 }
             });
