@@ -103,19 +103,6 @@
             return false;
         }
 
-        // Server Backend Local Auth Handlers
-        function setupServerAuth() {
-            // Check active session
-            if (localSession) {
-                try {
-                    const user = JSON.parse(localSession);
-                    handleUserSignIn(user);
-                } catch (e) {
-                    console.error("Local session corrupted:", e);
-                }
-            } else {
-                if (authOverlay) authOverlay.classList.remove("hidden");
-            }
 
         // Unify the submit event listener so it's bound immediately
         if (formLogin) {
@@ -284,7 +271,6 @@
             
             // Switch to login form
             if (linkGotoLogin) linkGotoLogin.click();
-        }
         }
 
         // Helper to validate offline credentials
