@@ -170,10 +170,11 @@
 
         // Server Backend Local Auth Handlers
         function setupServerAuth() {
-            // Check active session
-            if (localSession) {
+            // Check active session dynamically to avoid closure staleness
+            const currentSession = localStorage.getItem("activoflow_local_session");
+            if (currentSession) {
                 try {
-                    const user = JSON.parse(localSession);
+                    const user = JSON.parse(currentSession);
                     handleUserSignIn(user);
                 } catch (e) {
                     console.error("Local session corrupted:", e);
