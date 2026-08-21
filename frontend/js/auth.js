@@ -16,6 +16,14 @@
         const btnGotoRegisterJuliaca = document.getElementById("btn-goto-register-juliaca");
         const btnCancelRegisterJuliaca = document.getElementById("btn-cancel-register-juliaca");
 
+        // Prevent default form submissions immediately
+        if (formLogin) {
+            formLogin.addEventListener("submit", (e) => e.preventDefault());
+        }
+        if (formRegister) {
+            formRegister.addEventListener("submit", (e) => e.preventDefault());
+        }
+
         // Panel Switch Navigation
         if (btnGotoRegisterJuliaca) {
             btnGotoRegisterJuliaca.addEventListener("click", (e) => {
@@ -109,50 +117,39 @@
                 if (authOverlay) authOverlay.classList.remove("hidden");
             }
 
-            // Google OAuth Sign In is not supported locally
-            if (btnGoogleLogin) {
-                btnGoogleLogin.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    AF.showToast("El inicio de sesión de Google no está disponible en el servidor local.", "warning");
-                });
-            }
+        // Unify the submit event listener so it's bound immediately
+        if (formLogin) {
+            formLogin.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const email = document.getElementById("login-email").value.trim();
+                const password = document.getElementById("login-password").value;
+                const errBanner = document.getElementById("juliaca-error-banner");
+                if (errBanner) errBanner.classList.add("hidden");
 
-            // Bind email/password form login using Backend local API
-            if (formLogin) {
-                formLogin.addEventListener("submit", async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById("login-email").value.trim();
-                    const password = document.getElementById("login-password").value;
+                AF.showToast("Validando usuario...", "info");
 
-                    // Hide any visible error banner on submit attempt
-                    const errBanner = document.getElementById("juliaca-error-banner");
-                    if (errBanner) errBanner.classList.add("hidden");
+                // Check user existence
+                const userExists = await checkIfUserExists(email);
+                if (!userExists) {
+                    AF.showToast("El usuario no existe. Redirigiendo a registro...", "warning");
+                    setTimeout(() => {
+                        const regEmail = document.getElementById("reg-email");
+                        if (regEmail) regEmail.value = email;
+                        
+                        panelLogin.classList.add("hidden");
+                        panelRegister.classList.remove("hidden");
+                    }, 1200);
+                    return;
+                }
 
-                    AF.showToast("Validando usuario...", "info");
-
-                    // Redirect to registration form if user is not registered in local state
-                    const userExists = await checkIfUserExists(email);
-                    if (!userExists) {
-                        AF.showToast("El usuario no existe. Redirigiendo a registro...", "warning");
-                        setTimeout(() => {
-                            const regEmail = document.getElementById("reg-email");
-                            if (regEmail) regEmail.value = email;
-                            
-                            panelLogin.classList.add("hidden");
-                            panelRegister.classList.remove("hidden");
-                        }, 1200);
-                        return;
-                    }
-
+                // If backend is supported and we're not falling back to offline yet
+                if (AF.useBackend) {
                     try {
                         const res = await fetch("/api/auth/login", {
                             method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
+                            headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ email, password })
                         });
-
                         if (res.ok) {
                             const result = await res.json();
                             AF.showToast("Acceso correcto.", "success");
@@ -164,29 +161,82 @@
                             AF.showToast(errData.error || "Contraseña incorrecta", "danger");
                         }
                     } catch (err) {
-                        console.error("Error logging in:", err);
-                        AF.showToast("Error de conexión con el servidor.", "danger");
+                        console.error("Error logging in via server:", err);
+                        AF.showToast("Error de servidor. Intentando acceso local...", "warning");
+                        // Fallback to offline login if server fetch failed
+                        const success = tryOfflineLogin(email, password);
+                        if (!success) {
+                            if (errBanner) errBanner.classList.remove("hidden");
+                            AF.showToast("Usuario o contraseña incorrectos.", "danger");
+                        }
                     }
-                });
+                } else {
+                    // Local offline login
+                    const success = tryOfflineLogin(email, password);
+                    if (!success) {
+                        if (errBanner) errBanner.classList.remove("hidden");
+                        AF.showToast("Usuario o contraseña incorrectos.", "danger");
+                    }
+                }
+            });
+        }
+
+        // Server Backend Local Auth Handlers
+        function setupServerAuth() {
+            // Check active session
+            if (localSession) {
+                try {
+                    const user = JSON.parse(localSession);
+                    handleUserSignIn(user);
+                } catch (e) {
+                    console.error("Local session corrupted:", e);
+                }
+            } else {
+                if (authOverlay) authOverlay.classList.remove("hidden");
             }
 
-            // Bind registration using Backend local API
-            if (formRegister) {
-                formRegister.addEventListener("submit", async (e) => {
+            // Google OAuth Sign In is not supported locally
+            if (btnGoogleLogin) {
+                btnGoogleLogin.addEventListener("click", (e) => {
                     e.preventDefault();
-                    const name = document.getElementById("reg-name").value.trim();
-                    const email = document.getElementById("reg-email").value.trim();
-                    const password = document.getElementById("reg-password").value;
-                    const role = document.getElementById("reg-role").value;
+                    AF.showToast("El inicio de sesión de Google no está disponible en el servidor local.", "warning");
+                });
+            }
+        }
 
-                    AF.showToast("Registrando usuario...", "info");
+        // Local Auth Handlers (Offline fallback)
+        function setupLocalAuth() {
+            // Google Login is not supported in Local/Offline mode
+            if (btnGoogleLogin) {
+                btnGoogleLogin.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    AF.showToast("El inicio de sesión de Google requiere conexión a Internet.", "warning");
+                });
+            }
+        }
 
+        if (formRegister) {
+            formRegister.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const name = document.getElementById("reg-name").value.trim();
+                const email = document.getElementById("reg-email").value.trim();
+                const password = document.getElementById("reg-password").value;
+                const role = document.getElementById("reg-role").value;
+
+                // Ensure user is not already registered in local cache
+                const exists = AF.state.usuarios.find(u => u.email.toLowerCase() === email.toLowerCase());
+                if (exists || email.toLowerCase() === "vaidrollteam") {
+                    AF.showToast("Este usuario ya está registrado.", "danger");
+                    return;
+                }
+
+                AF.showToast("Registrando usuario...", "info");
+
+                if (AF.useBackend) {
                     try {
                         const res = await fetch("/api/auth/register", {
                             method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
+                            headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ name, email, password, role })
                         });
 
@@ -207,92 +257,34 @@
                             AF.showToast("Error de registro: " + errData.error, "danger");
                         }
                     } catch (err) {
-                        console.error("Error registering user:", err);
-                        AF.showToast("Error de conexión con el servidor.", "danger");
+                        console.error("Error registering user via server:", err);
+                        AF.showToast("Error de conexión. Registrando localmente...", "warning");
+                        registerLocally(name, email, password, role);
                     }
-                });
-            }
+                } else {
+                    registerLocally(name, email, password, role);
+                }
+            });
         }
 
-        // Local Auth Handlers (Offline fallback)
-        function setupLocalAuth() {
-            // Google Login is not supported in Local/Offline mode
-            if (btnGoogleLogin) {
-                btnGoogleLogin.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    AF.showToast("El inicio de sesión de Google requiere conexión a Internet.", "warning");
-                });
-            }
+        function registerLocally(name, email, password, role) {
+            const newUser = {
+                id: "local_" + Date.now(),
+                email: email,
+                name: name,
+                role: role,
+                password: password,
+                created_at: new Date().toISOString(),
+                active: 1
+            };
 
-            // Bind email/password form login using LocalStorage
-            if (formLogin) {
-                formLogin.addEventListener("submit", async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById("login-email").value.trim();
-                    const password = document.getElementById("login-password").value;
-
-                    // Hide any visible error banner on submit attempt
-                    const errBanner = document.getElementById("juliaca-error-banner");
-                    if (errBanner) errBanner.classList.add("hidden");
-
-                    AF.showToast("Validando usuario local...", "info");
-
-                    // Redirect to registration form if user is not registered in local state
-                    const userExists = await checkIfUserExists(email);
-                    if (!userExists) {
-                        AF.showToast("El usuario no existe. Redirigiendo a registro...", "warning");
-                        setTimeout(() => {
-                            const regEmail = document.getElementById("reg-email");
-                            if (regEmail) regEmail.value = email;
-                            
-                            panelLogin.classList.add("hidden");
-                            panelRegister.classList.remove("hidden");
-                        }, 1200);
-                        return;
-                    }
-
-                    const success = tryOfflineLogin(email, password);
-                    if (!success) {
-                        if (errBanner) errBanner.classList.remove("hidden");
-                        AF.showToast("Usuario o contraseña incorrectos.", "danger");
-                    }
-                });
-            }
-
-            // Bind registration using LocalStorage
-            if (formRegister) {
-                formRegister.addEventListener("submit", (e) => {
-                    e.preventDefault();
-                    const name = document.getElementById("reg-name").value.trim();
-                    const email = document.getElementById("reg-email").value.trim();
-                    const password = document.getElementById("reg-password").value;
-                    const role = document.getElementById("reg-role").value;
-
-                    // Ensure user is not already registered
-                    const exists = AF.state.usuarios.find(u => u.email.toLowerCase() === email.toLowerCase());
-                    if (exists || email.toLowerCase() === "vaidrollteam") {
-                        AF.showToast("Este usuario ya está registrado.", "danger");
-                        return;
-                    }
-
-                    const newUser = {
-                        id: "local_" + Date.now(),
-                        email: email,
-                        name: name,
-                        role: role,
-                        password: password,
-                        created_at: new Date().toISOString(),
-                        active: 1
-                    };
-
-                    AF.state.usuarios.push(newUser);
-                    localStorage.setItem("activoflow_state", JSON.stringify(AF.state));
-                    AF.showToast("Cuenta de administrador registrada con éxito localmente.", "success");
-                    
-                    // Switch to login form
-                    if (linkGotoLogin) linkGotoLogin.click();
-                });
-            }
+            AF.state.usuarios.push(newUser);
+            localStorage.setItem("activoflow_state", JSON.stringify(AF.state));
+            AF.showToast("Cuenta registrada con éxito localmente.", "success");
+            
+            // Switch to login form
+            if (linkGotoLogin) linkGotoLogin.click();
+        }
         }
 
         // Helper to validate offline credentials
@@ -357,6 +349,12 @@
 
             // Refresh user tables & indicators
             if (AF.renderUsersTable) AF.renderUsersTable();
+
+            // Redirect to dashboard by default
+            const btnNavDashboard = document.querySelector('.menu-item[data-target="dashboard"]');
+            if (btnNavDashboard) {
+                btnNavDashboard.click();
+            }
         }
     };
 
