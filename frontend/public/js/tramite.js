@@ -286,6 +286,16 @@
             return;
         }
 
+        // Sort primarily by dateRec (descending) and secondarily by regNro (descending)
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.dateRec).getTime();
+            const dateB = new Date(b.dateRec).getTime();
+            if (dateA !== dateB) {
+                return dateB - dateA;
+            }
+            return (parseInt(b.regNro) || 0) - (parseInt(a.regNro) || 0);
+        });
+
         filtered.forEach(d => {
             const tr = document.createElement("tr");
 
@@ -371,6 +381,21 @@
                 `;
             }
 
+            // Check for linked Ficha Técnica
+            const linkedAsset = (AF.state.assets || []).find(a => {
+                const carta = a.specs && a.specs.carta_recibido ? a.specs.carta_recibido.toLowerCase() : "";
+                return carta && (carta.includes(d.docNro.toLowerCase()) || d.docNro.toLowerCase().includes(carta));
+            });
+
+            let fichaBtnHtml = "";
+            if (linkedAsset) {
+                fichaBtnHtml = `
+                    <button type="button" class="btn btn-xs btn-view-linked-ficha" data-asset-id="${linkedAsset.id}" title="Ver Ficha Técnica Vinculada" style="padding: 5px; height: auto; background: #2563eb; border-color: #2563eb; color: white;">
+                        <i data-lucide="file-check" style="width: 12px; height: 12px;"></i>
+                    </button>
+                `;
+            }
+
             responseSnippet += reentrySnippet;
             tr.innerHTML = `
                 <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--accent); font-size: 13px; width: 60px;">${d.regNro}</td>
@@ -396,6 +421,7 @@
                 </td>
                 <td style="padding: 12px 10px; text-align: center; border-bottom: 1px solid var(--border-color); width: 100px;">
                     <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                        ${fichaBtnHtml}
                         <button type="button" class="btn btn-outline btn-xs btn-edit-doc" data-id="${d.id}" title="Editar Documento" style="padding: 5px; height: auto;">
                             <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i>
                         </button>
@@ -410,6 +436,20 @@
         });
 
         if (window.lucide) window.lucide.createIcons();
+
+        // Ficha Tecnica Link Listeners
+        tableBody.querySelectorAll(".btn-view-linked-ficha").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const assetId = btn.getAttribute("data-asset-id");
+                const asset = (AF.state.assets || []).find(a => a.id === assetId);
+                if (asset && typeof AF.loadReportDocument === "function") {
+                    AF.loadReportDocument(asset);
+                    const btnReports = document.getElementById("btn-reports");
+                    if (btnReports) btnReports.click();
+                    AF.showToast("Mostrando Ficha Técnica vinculada.", "success");
+                }
+            });
+        });
 
         // Bind Action Listeners
         tableBody.querySelectorAll(".btn-add-response").forEach(btn => {

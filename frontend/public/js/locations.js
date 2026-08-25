@@ -979,7 +979,7 @@
         }
 
         const rows = assets.map(a => `
-            <tr style="border-bottom: 1px solid var(--border-color); height: 44px;">
+            <tr class="asset-row" style="border-bottom: 1px solid var(--border-color); height: 44px;">
                 <td style="padding: 8px 12px; font-size: 12px;"><strong>${a.code}</strong></td>
                 <td style="padding: 8px 12px; font-size: 12px;">${a.name}</td>
                 <td style="padding: 8px 12px; font-size: 12px;"><span class="badge badge-purple">${a.category || '-'}</span></td>
@@ -993,6 +993,10 @@
         `).join('');
 
         return `
+            <div style="margin-bottom: 15px; position: relative;">
+                <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-secondary);"></i>
+                <input type="text" id="location-asset-search" placeholder="Buscar por código o nombre del bien..." style="width: 100%; padding: 10px 10px 10px 36px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); font-size: 13px; color: var(--text-primary); outline: none;">
+            </div>
             <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card);">
                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
@@ -1013,6 +1017,17 @@
     };
 
     AF.attachDetailActionListeners = function() {
+        const searchInput = document.getElementById("location-asset-search");
+        if (searchInput) {
+            searchInput.addEventListener("input", function() {
+                const term = this.value.toLowerCase();
+                document.querySelectorAll("tr.asset-row").forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(term) ? "" : "none";
+                });
+            });
+        }
+
         document.querySelectorAll(".btn-unassign-detail-inline").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();

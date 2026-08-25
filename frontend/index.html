@@ -495,9 +495,20 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-primary" id="btn-new-report" style="display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="plus"></i> Crear Ficha Técnica
-                            </button>
+                            <div class="dropdown-wrapper" style="position: relative; display: inline-block;">
+                                <button class="btn btn-primary" id="btn-new-report-dropdown" style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="plus"></i> Crear Ficha Técnica <i data-lucide="chevron-down" style="width: 14px; height: 14px; margin-left: 2px;"></i>
+                                </button>
+                                <!-- The dropdown logic will be handled via JS/CSS -->
+                                <div id="new-report-dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 5px; min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100;">
+                                    <button class="dropdown-item" id="btn-new-report-office" style="width: 100%; text-align: left; padding: 10px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; border-radius: var(--radius-sm); font-size: 13px;">
+                                        <i data-lucide="monitor" style="width: 14px; height: 14px; margin-right: 8px; vertical-align: middle;"></i> Equipos de Oficina
+                                    </button>
+                                    <button class="dropdown-item" id="btn-new-report-new" style="width: 100%; text-align: left; padding: 10px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; border-radius: var(--radius-sm); font-size: 13px;">
+                                        <i data-lucide="package-plus" style="width: 14px; height: 14px; margin-right: 8px; vertical-align: middle;"></i> Nuevos Ingresos
+                                    </button>
+                                </div>
+                            </div>
                             <button class="btn btn-outline" id="btn-print-sheet" disabled style="display: flex; align-items: center; gap: 8px;">
                                 <i data-lucide="printer"></i> Imprimir / Exportar a PDF
                             </button>
@@ -527,18 +538,30 @@
                         </div>
                         <h3>Ningún bien seleccionado</h3>
                         <p style="margin-bottom: 15px;">Utiliza el buscador predictivo superior para cargar los datos de un bien, o haz clic abajo para crear una ficha técnica desde cero.</p>
-                        <button type="button" class="btn btn-primary" id="btn-empty-create-report" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; margin: 0 auto;">
-                            <i data-lucide="plus"></i> Crear Nueva Ficha Técnica
-                        </button>
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                            <button type="button" class="btn btn-primary" id="btn-empty-create-report-office" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
+                                <i data-lucide="monitor"></i> Crear (Equipos de Oficina)
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="btn-empty-create-report-new" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);">
+                                <i data-lucide="package-plus"></i> Crear (Nuevos Ingresos)
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Listado de Fichas Técnicas Registradas -->
                     <div class="dashboard-card mb-20" id="reports-list-container">
-                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: transparent;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="file-text" style="color: var(--accent); width: 20px; height: 20px;"></i>
-                                <h3 style="font-size: 15px; font-weight: 700; margin: 0; color: var(--text-primary);">Fichas Técnicas Registradas</h3>
+                        <div class="card-header" style="padding: 0; border-bottom: 1px solid var(--border-color); background: transparent;">
+                            <div style="display: flex; gap: 20px; padding: 0 20px; margin-bottom: -1px;" id="ficha-tabs-container">
+                                <button class="ficha-tab-btn active" data-tab="office_equipment" style="padding: 15px 10px; border: none; background: transparent; color: var(--accent); font-weight: 600; border-bottom: 2px solid var(--accent); cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="monitor" style="width: 16px; height: 16px;"></i> Equipos de Oficina
+                                </button>
+                                <button class="ficha-tab-btn" data-tab="new_arrival" style="padding: 15px 10px; border: none; background: transparent; color: var(--text-secondary); font-weight: 500; border-bottom: 2px solid transparent; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="package-plus" style="width: 16px; height: 16px;"></i> Nuevos Ingresos
+                                </button>
                             </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                            <h3 style="font-size: 14px; font-weight: 600; margin: 0; color: var(--text-primary);" id="active-tab-title">Listado de Equipos de Oficina</h3>
                             <span class="badge badge-primary" id="reports-count-badge" style="font-weight: 700;">0 Fichas</span>
                         </div>
                         <div class="card-body no-padding" style="overflow-x: auto;">
@@ -579,17 +602,24 @@
                                 <div style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                         <h4 style="font-size: 11px; font-weight: 700; color: var(--accent); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">1. Datos Generales</h4>
+                                        <input type="hidden" id="rep-type" value="new_arrival">
                                         <div style="width: 170px;">
                                             <select id="rep-clone-asset" style="padding: 4px 6px; font-size: 10px; width: 100%; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); background: var(--bg-app); color: var(--text-secondary); cursor: pointer; height: auto;" title="Copiar especificaciones de un equipo registrado anteriormente">
                                                 <option value="">Copiar de equipo existente...</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="grid-2-col" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 10px; margin-bottom: 10px;">
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label for="rep-code" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">N° Ficha Técnica</label>
-                                            <input type="text" id="rep-code" required readonly style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: rgba(0,0,0,0.15); color: var(--text-primary); cursor: not-allowed;" placeholder="Ej. PAT-2026-0001">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                                            <div class="form-group" style="margin-bottom: 0;">
+                                                <label for="rep-code" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">N° Ficha Técnica</label>
+                                                <input type="text" id="rep-code" readonly style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: rgba(0,0,0,0.15); color: var(--text-primary); cursor: not-allowed;" placeholder="Ej. 0001">
+                                            </div>
+                                            <div class="form-group" id="form-group-codigo-pat" style="margin-bottom: 0;">
+                                                <label for="rep-codigo-pat" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Código Patrimonial</label>
+                                                <input type="text" id="rep-codigo-pat" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);" placeholder="Ej: 462200500010">
+                                            </div>
                                         </div>
+                                    <div class="grid-2-col" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 10px; margin-bottom: 10px;">
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label for="rep-font-size" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Tamaño de Letra</label>
                                             <div class="select-wrapper">
@@ -670,7 +700,7 @@
                                 </div>
 
                                 <!-- Group 2: Requerimiento -->
-                                <div style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
+                                <div id="form-group-requerimiento" style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
                                     <h4 style="font-size: 11px; font-weight: 700; color: var(--accent); margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">2. Requerimiento</h4>
                                     <div class="form-group" style="margin-bottom: 10px;">
                                         <label for="rep-carta" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Nro. de Carta Recibido</label>
@@ -709,7 +739,7 @@
                                 </div>
 
                                 <!-- Group 3: Datos del Responsable -->
-                                <div style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
+                                <div id="form-group-responsable" style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
                                     <h4 style="font-size: 11px; font-weight: 700; color: var(--accent); margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">3. Datos del Responsable</h4>
                                     <div class="form-group" style="margin-bottom: 10px;">
                                         <label for="rep-resp-cargo" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Cargo del Responsable</label>
@@ -727,8 +757,51 @@
                                     </div>
                                 </div>
 
+                                <!-- Group 5: Inventario Patrimonial (Solo Equipos de Oficina) -->
+                                <div id="form-group-inventory" style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01); display: none;">
+                                    <h4 style="font-size: 11px; font-weight: 700; color: var(--accent); margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">Inventario Patrimonial</h4>
+                                    
+                                    <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label for="rep-situacion" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Situación</label>
+                                            <div class="select-wrapper">
+                                                <select id="rep-situacion" style="padding: 6px 10px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary); cursor: pointer; height: 35px;">
+                                                    <option value="USO">USO</option>
+                                                    <option value="DESUSO">DESUSO</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label for="rep-estado" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Estado</label>
+                                            <div class="select-wrapper">
+                                                <select id="rep-estado" style="padding: 6px 10px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary); cursor: pointer; height: 35px;">
+                                                    <option value="BUENO">BUENO</option>
+                                                    <option value="REGULAR">REGULAR</option>
+                                                    <option value="MALO">MALO</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label for="rep-dimensiones" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Dimensiones</label>
+                                            <input type="text" id="rep-dimensiones" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label for="rep-otros" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Otros (Ej. Datos según orden)</label>
+                                            <input type="text" id="rep-otros" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label for="rep-inventariador" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Personal Inventariador</label>
+                                        <input type="text" id="rep-inventariador" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);" placeholder="Ej. RONY WALDIR QUISPE HUARILLOCLLA - COMISIÓN DE INVENTARIO 2025">
+                                    </div>
+                                </div>
+
                                 <!-- Group 4: Proveedor y Compra -->
-                                <div style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
+                                <div id="form-group-provider" style="margin-bottom: 16px; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); background: rgba(255,255,255,0.01);">
                                     <h4 style="font-size: 11px; font-weight: 700; color: var(--accent); margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">4. Proveedor & Adquisición</h4>
                                     <div class="form-group" style="margin-bottom: 10px;">
                                         <label for="rep-provider" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Razón Social Proveedor</label>
@@ -976,7 +1049,7 @@
                                 }
                             </style>
 
-                            <div class="official-ficha">
+                            <div class="official-ficha" id="official-ficha-new">
                                 <!-- Official Header -->
                                 <div class="official-header">
                                     <div class="official-header-left">
@@ -1110,27 +1183,27 @@
                                         <td class="grid-value" id="doc-responsible-phone">**</td>
                                         <td class="grid-value" id="doc-responsible-email" colspan="2">**</td>
                                     </tr>
-                                    <tr>
+                                    <tr class="print-provider-row">
                                         <td class="grid-header">PROVEEDOR</td>
                                         <td class="grid-header">DIRECCIÓN</td>
                                         <td class="grid-header">TELÉFONO</td>
                                         <td class="grid-header" style="width: 13%;">Nro. ORDEN</td>
                                         <td class="grid-header" style="width: 13%;">COSTO VALOR S/.</td>
                                     </tr>
-                                    <tr>
+                                    <tr class="print-provider-row">
                                         <td class="grid-value" id="doc-provider-s3">-</td>
                                         <td class="grid-value" id="doc-provider-address" style="font-size: 9px; line-height: 1.1;">-</td>
                                         <td class="grid-value">**</td>
                                         <td class="grid-value" id="doc-orden-nro-s3">-</td>
                                         <td class="grid-value" id="doc-cost-s3" style="font-weight: bold; color: #1e3b8a;">-</td>
                                     </tr>
-                                    <tr>
+                                    <tr class="print-provider-row">
                                         <td class="grid-header">e-mail PROVEEDOR</td>
                                         <td class="grid-header" colspan="2">COMPROBANTE - GUÍA</td>
                                         <td class="grid-header">FECHA DE COMPRA</td>
                                         <td class="grid-header">TIEMPO DE GARANT.</td>
                                     </tr>
-                                    <tr>
+                                    <tr class="print-provider-row">
                                         <td class="grid-value">**</td>
                                         <td class="grid-value" colspan="2" id="doc-guia-nro">EG07-00000010</td>
                                         <td class="grid-value" id="doc-purchase-date-s3">-</td>
@@ -1177,6 +1250,80 @@
                                     <span>GESTIÓN: 2023 - 2026</span>
                                     <span style="font-size: 8.5px; font-weight: normal; opacity: 0.85;">MUNICIPALIDAD PROVINCIAL DE SAN ROMÁN - JULIACA</span>
                                 </div>
+                            </div>
+                            <!-- Formato de Levantamiento de Información (Solo Equipos de Oficina) -->
+                            <div class="official-ficha" id="official-ficha-office" style="display: none; padding: 25mm 20mm; font-family: 'Inter', Arial, sans-serif; background: white; color: #1e293b; box-shadow: 0 5px 25px rgba(0,0,0,0.1); width: 100%; min-height: 297mm; position: relative;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 2px solid #1e3a8a; padding-bottom: 15px;">
+                                    <div>
+                                        <h2 style="font-size: 15px; margin: 0; font-weight: 800; color: #0f172a; letter-spacing: 0.5px; text-transform: uppercase;">Formato de Ficha de Levantamiento de Información</h2>
+                                        <h2 style="font-size: 15px; margin: 4px 0; font-weight: 800; color: #0f172a; letter-spacing: 0.5px; text-transform: uppercase;">Inventario Patrimonial 2025</h2>
+                                        <h3 style="font-size: 12px; margin: 8px 0 0 0; font-weight: 600; color: #475569; text-transform: uppercase;">Municipalidad Provincial de San Roman - Juliaca</h3>
+                                    </div>
+                                    <div style="background: #eff6ff; padding: 12px 20px; border-radius: 8px; border: 1px solid #bfdbfe; text-align: center; min-width: 120px;">
+                                        <div style="font-size: 10px; font-weight: 700; color: #2563eb; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px;">N° Ficha Técnica</div>
+                                        <div style="font-size: 16px; font-weight: 800; color: #1e3a8a; letter-spacing: 1px;" id="doc-office-ficha-num">0001</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="font-size: 11px; margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; line-height: 1.6;">
+                                    <div style="background: #f8fafc; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                        <div style="margin-bottom: 6px;"><strong style="color: #0f172a;">USUARIO:</strong> <span id="doc-office-usuario" style="color: #334155;"></span></div>
+                                        <div style="margin-bottom: 6px;"><strong style="color: #0f172a;">LOCAL:</strong> <span id="doc-office-local" style="color: #334155;"></span></div>
+                                        <div style="margin-bottom: 6px;"><strong style="color: #0f172a;">ÁREA:</strong> <span id="doc-office-area" style="color: #334155;"></span></div>
+                                        <div><strong style="color: #0f172a;">OFICINA:</strong> <span id="doc-office-oficina" style="color: #334155;"></span></div>
+                                    </div>
+                                    <div style="background: #f8fafc; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; flex-direction: column; justify-content: center;">
+                                        <div style="margin-bottom: 4px;"><strong style="color: #0f172a;">PERSONAL INVENTARIADOR:</strong></div>
+                                        <div style="margin-bottom: 12px; color: #334155; font-weight: 500;" id="doc-office-inventariador"></div>
+                                        <div><strong style="color: #0f172a;">FECHA DE REGISTRO:</strong> <span id="doc-office-fecha" style="color: #334155; background: #e0e7ff; padding: 2px 8px; border-radius: 12px; font-weight: 600;"></span></div>
+                                    </div>
+                                </div>
+                                
+                                <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px #cbd5e1; margin-bottom: 20px;">
+                                    <thead style="background: #f1f5f9; text-align: center; font-weight: 700; font-size: 9.5px;">
+                                        <tr>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Código Pat.</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Denominación</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Marca</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Modelo</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Tipo</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Color</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="text-align: center;">
+                                        <tr style="background: #ffffff;">
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #0f172a; font-weight: 700; background: #fafafa;" id="doc-office-codigo"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #0f172a; font-weight: 700;" id="doc-office-denominacion"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #475569;" id="doc-office-marca"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #475569;" id="doc-office-modelo"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #475569;" id="doc-office-tipo"></td>
+                                            <td style="padding: 14px 6px; color: #475569;" id="doc-office-color"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px #cbd5e1;">
+                                    <thead style="background: #f1f5f9; text-align: center; font-weight: 700; font-size: 9.5px;">
+                                        <tr>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Serie</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Dimensiones</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Otros</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Situación</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Estado</th>
+                                            <th style="padding: 12px 6px; border-bottom: 1px solid #cbd5e1; color: #334155; text-transform: uppercase;">Observaciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="text-align: center;">
+                                        <tr style="background: #ffffff;">
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #475569;" id="doc-office-serie"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #475569;" id="doc-office-dimensiones"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #475569;" id="doc-office-otros"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #334155; font-weight: 600;" id="doc-office-situacion"></td>
+                                            <td style="padding: 14px 6px; border-right: 1px solid #cbd5e1; color: #334155; font-weight: 600;" id="doc-office-estado"></td>
+                                            <td style="padding: 14px 6px; color: #475569; text-align: left; font-size: 8.5px;" id="doc-office-observaciones"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -1653,8 +1800,8 @@
                 <div class="modal-body" style="padding: 20px;">
                     <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label class="required-label" style="font-size: 12px; margin-bottom: 4px; display: block;">N° Registro (Correlativo)</label>
-                            <input type="text" id="doc-reg-nro" readonly required style="width:100%; padding:8px; border:1px solid var(--border-color); background:rgba(0,0,0,0.15); color:var(--text-secondary); border-radius:var(--radius-sm); cursor:not-allowed;" title="El número de registro correlativo se genera automáticamente de forma consecutiva.">
+                            <label class="required-label" style="font-size: 12px; margin-bottom: 4px; display: block;">N° Registro</label>
+                            <input type="text" id="doc-reg-nro" required style="width:100%; padding:8px; border:1px solid var(--border-color); background:var(--bg-app); color:var(--text-primary); border-radius:var(--radius-sm);">
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label class="required-label" style="font-size: 12px; margin-bottom: 4px; display: block;">Fecha de Recepción</label>

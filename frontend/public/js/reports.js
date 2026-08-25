@@ -6,10 +6,12 @@
     let activeReportAsset = null;
 
     AF.loadReportDocument = function(asset) {
+        try {
         activeReportAsset = asset;
 
         // Populate left-side editor form
         const repCode = document.getElementById("rep-code");
+        const repCodigoPat = document.getElementById("rep-codigo-pat");
         const repFontSize = document.getElementById("rep-font-size");
         const repName = document.getElementById("rep-name");
         const repBrand = document.getElementById("rep-brand");
@@ -35,8 +37,34 @@
         const repCosto = document.getElementById("rep-costo");
         const repObs = document.getElementById("rep-obs");
 
-        if (repCode) repCode.value = asset.code || "";
-        if (repFontSize) repFontSize.value = (asset.specs && asset.specs["font_size"]) || "11";
+        if (repCode) {
+            repCode.value = asset.code || "";
+        }
+        
+        if (repCodigoPat) {
+            repCodigoPat.value = (asset.specs && asset.specs["codigo_patrimonial"]) || "";
+        }if (repFontSize) repFontSize.value = (asset.specs && asset.specs["font_size"]) || "11";
+
+        const repTypeField = document.getElementById("rep-type");
+        const assetType = asset.type || "office_equipment"; // Default to office equipment for seeded assets
+        if (repTypeField) {
+            repTypeField.value = assetType;
+        }
+
+        const formGroupProvider = document.getElementById("form-group-provider");
+        const formGroupReq = document.getElementById("form-group-requerimiento");
+        const formGroupResp = document.getElementById("form-group-responsable");
+        const formGroupInv = document.getElementById("form-group-inventory");
+        
+        if (formGroupProvider) formGroupProvider.style.display = assetType === "office_equipment" ? "none" : "block";
+        if (formGroupReq) formGroupReq.style.display = assetType === "office_equipment" ? "none" : "block";
+        if (formGroupResp) formGroupResp.style.display = assetType === "office_equipment" ? "none" : "block";
+        if (formGroupInv) formGroupInv.style.display = assetType === "office_equipment" ? "block" : "none";
+
+        const printProviderRows = document.querySelectorAll(".print-provider-row");
+        printProviderRows.forEach(row => {
+            row.style.display = assetType === "office_equipment" ? "none" : "";
+        });
 
         const officialFicha = document.querySelector(".official-ficha");
         if (officialFicha) {
@@ -236,6 +264,25 @@
             repObs.value = val;
         }
 
+        const repDimensiones = document.getElementById("rep-dimensiones");
+        if (repDimensiones) repDimensiones.value = (asset.specs && asset.specs["dimensiones"]) || "";
+        
+        const repOtros = document.getElementById("rep-otros");
+        if (repOtros) repOtros.value = (asset.specs && asset.specs["otros"]) || "";
+        
+        const repSituacion = document.getElementById("rep-situacion");
+        if (repSituacion) repSituacion.value = (asset.specs && asset.specs["situacion"]) || "USO";
+        
+        const repEstado = document.getElementById("rep-estado");
+        if (repEstado) repEstado.value = (asset.specs && asset.specs["estado"]) || "REGULAR";
+        
+        const repInventariador = document.getElementById("rep-inventariador");
+        if (repInventariador) {
+            let invVal = (asset.specs && asset.specs["inventariador"]) || "";
+            if (!invVal && assetType === "office_equipment") invVal = "RONY WALDIR QUISPE HUARILLOCLLA - COMISIÓN DE INVENTARIO 2025";
+            repInventariador.value = invVal;
+        }
+
         const searchInput = document.getElementById("report-asset-search");
         if (searchInput) searchInput.value = `${asset.code} - ${asset.name}`;
         
@@ -428,11 +475,61 @@
             if (obsKey) obsVal = asset.specs[obsKey];
         }
         document.getElementById("doc-observaciones").textContent = obsVal.toUpperCase();
+        const observacionesEl = document.getElementById("doc-observaciones");
+        if (observacionesEl) observacionesEl.textContent = document.getElementById("rep-obs") ? document.getElementById("rep-obs").value : "CONFORME - OPERATIVO EN SU TOTALIDAD";
 
-        // 5. Signature Footer
-        const elabByEl = document.getElementById("doc-elaborated-by");
-        if (elabByEl) {
-            elabByEl.textContent = "OPERADOR DE SISTEMA (ADMIN)";
+        const elaboratedBy = document.getElementById("doc-elaborated-by");
+        if (elaboratedBy) {
+            const user = AF.currentUser || { name: "Usuario", role: "Administrador" };
+            elaboratedBy.textContent = `${user.name} (${(user.role || "").toUpperCase()})`;
+        }
+        
+        const officialFichaNew = document.getElementById("official-ficha-new");
+        const officialFichaOffice = document.getElementById("official-ficha-office");
+        
+        if (officialFichaNew && officialFichaOffice) {
+            if (assetType === "office_equipment") {
+                officialFichaNew.style.display = "none";
+                officialFichaOffice.style.display = "block";
+                
+                const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+                
+                let locSede = "-";
+                let locArea = "OFI GENERAL DE TECNOLOGIA DE INFORMACION";
+                let locAmbiente = "-";
+                let responsable = "-";
+                
+                if (asset.location) {
+                    locSede = AF.getSedeName(asset.location.sedeId);
+                    locAmbiente = AF.getOficinaName(asset.location.oficinaId);
+                    if (asset.location.ambienteName) locAmbiente += " " + asset.location.ambienteName;
+                    responsable = asset.location.responsible || "-";
+                }
+                
+                setEl("doc-office-usuario", responsable);
+                setEl("doc-office-local", locSede);
+                setEl("doc-office-area", locArea);
+                setEl("doc-office-oficina", locAmbiente);
+                setEl("doc-office-inventariador", repInventariador ? repInventariador.value : "-");
+                setEl("doc-office-fecha", (asset.specs && asset.specs["ficha_fecha_hora"]) ? asset.specs["ficha_fecha_hora"].split(' ')[0] : new Date().toLocaleDateString("es-PE"));
+                
+                setEl("doc-office-codigo", (asset.specs && asset.specs["codigo_patrimonial"]) || asset.code || "-");
+                setEl("doc-office-ficha-num", asset.code || "-");
+                setEl("doc-office-denominacion", asset.name || "-");
+                setEl("doc-office-marca", asset.brand || "-");
+                setEl("doc-office-modelo", asset.model || "-");
+                setEl("doc-office-tipo", asset.category || "-");
+                setEl("doc-office-color", repColor ? repColor.value : "-");
+                setEl("doc-office-serie", asset.serial || "-");
+                setEl("doc-office-dimensiones", repDimensiones ? repDimensiones.value : "-");
+                setEl("doc-office-otros", repOtros ? repOtros.value : "-");
+                setEl("doc-office-situacion", repSituacion ? repSituacion.value : "-");
+                setEl("doc-office-estado", repEstado ? repEstado.value : "-");
+                setEl("doc-office-observaciones", document.getElementById("rep-obs") ? document.getElementById("rep-obs").value : "-");
+            } else {
+                officialFichaNew.style.display = "block";
+                officialFichaOffice.style.display = "none";
+            }
         }
 
         // 6. Toggle visibility
@@ -449,9 +546,35 @@
 
         document.getElementById("report-document-wrapper").classList.remove("hidden");
         document.getElementById("btn-print-sheet").removeAttribute("disabled");
+        } catch (err) {
+            console.error("Error in loadReportDocument:", err);
+            alert("Error in loadReportDocument: " + err.message + "\nLine: " + err.lineNumber);
+        }
     };
 
     AF.initReports = function() {
+        // Auto-migrate legacy asset codes to N° Ficha Técnica
+        let modifiedState = false;
+        let ftoCounter = 1;
+        if (AF.state && AF.state.assets) {
+            AF.state.assets.forEach(a => {
+                if ((a.type || 'office_equipment') === 'office_equipment') {
+                    if (!String(a.code).match(/^\d{4}$/)) {
+                        if (!a.specs) a.specs = {};
+                        if (!a.specs.codigo_patrimonial && !String(a.code).startsWith('FTO-') && !String(a.code).startsWith('FTI-')) {
+                            a.specs.codigo_patrimonial = String(a.code);
+                        }
+                        a.code = String(ftoCounter).padStart(4, '0');
+                        modifiedState = true;
+                    }
+                    ftoCounter++;
+                }
+            });
+            if (modifiedState) {
+                localStorage.setItem("activoflow_state", JSON.stringify(AF.state));
+            }
+        }
+
         const reportAssetSearch = document.getElementById("report-asset-search");
         const reportAssetDropdown = document.getElementById("report-asset-dropdown");
         const btnPrintSheet = document.getElementById("btn-print-sheet");
@@ -707,12 +830,14 @@
             }
         }
 
-        const triggerCreateNewFicha = () => {
+        const triggerCreateNewFicha = (fichaType = 'new_arrival') => {
+            let count = AF.state.assets.filter(a => (a.type || 'office_equipment') === fichaType).length + 1;
             const newAsset = {
-                id: `asset-${Date.now()}`,
-                code: `PAT-2026-${String(AF.state.assets.length + 1).padStart(4, '0')}`,
+                id: "AST-" + Date.now(),
+                code: String(count).padStart(4, '0'),
+                type: fichaType,
                 name: "",
-                category: "MONITORES, IMPRESORAS Y PERIFÉRICOS",
+                category: fichaType === 'office_equipment' ? "Hardware/TI" : "Bienes Informáticos",
                 brand: "",
                 model: "",
                 serial: "",
@@ -749,38 +874,72 @@
         };
 
         // Bind header button
-        const btnNewReport = document.getElementById("btn-new-report");
-        if (btnNewReport) {
-            btnNewReport.addEventListener("click", triggerCreateNewFicha);
+        const btnNewReportDropdown = document.getElementById("btn-new-report-dropdown");
+        const newReportDropdownMenu = document.getElementById("new-report-dropdown-menu");
+        if (btnNewReportDropdown && newReportDropdownMenu) {
+            btnNewReportDropdown.addEventListener("click", (e) => {
+                e.stopPropagation();
+                newReportDropdownMenu.style.display = newReportDropdownMenu.style.display === "none" ? "block" : "none";
+            });
+            document.addEventListener("click", () => {
+                if(newReportDropdownMenu.style.display === "block") {
+                    newReportDropdownMenu.style.display = "none";
+                }
+            });
         }
 
-        // Bind empty state button
-        const btnEmptyCreateReport = document.getElementById("btn-empty-create-report");
-        if (btnEmptyCreateReport) {
-            btnEmptyCreateReport.addEventListener("click", triggerCreateNewFicha);
-        }
+        const btnNewReportOffice = document.getElementById("btn-new-report-office");
+        if (btnNewReportOffice) btnNewReportOffice.addEventListener("click", () => triggerCreateNewFicha('office_equipment'));
+
+        const btnNewReportNew = document.getElementById("btn-new-report-new");
+        if (btnNewReportNew) btnNewReportNew.addEventListener("click", () => triggerCreateNewFicha('new_arrival'));
+
+        // Bind empty state buttons
+        const btnEmptyCreateOffice = document.getElementById("btn-empty-create-report-office");
+        if (btnEmptyCreateOffice) btnEmptyCreateOffice.addEventListener("click", () => triggerCreateNewFicha('office_equipment'));
+
+        const btnEmptyCreateNew = document.getElementById("btn-empty-create-new");
+        if (btnEmptyCreateNew) btnEmptyCreateNew.addEventListener("click", () => triggerCreateNewFicha('new_arrival'));
 
         // Autocomplete search
-        if (reportAssetSearch) {
-            const showMatches = () => {
-                const val = reportAssetSearch.value.toLowerCase().trim();
+        if (reportAssetSearch && reportAssetDropdown) {
+            const showMatches = (e) => {
+                try {
+                const val = e.target.value.toLowerCase().trim();
                 reportAssetDropdown.innerHTML = "";
                 reportAssetDropdown.classList.remove("active");
+                
+                // If we also want to filter the table list when typing in search:
+                const listBody = document.getElementById("table-reports-list-body");
+                if (listBody) {
+                    const allRows = listBody.querySelectorAll("tr");
+                    allRows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        if (text.includes(val)) {
+                            row.style.display = "";
+                        } else {
+                            row.style.display = "none";
+                        }
+                    });
+                }
+
+                if (val.length < 3) return;
 
                 const matches = AF.state.assets.filter(a => {
-                    return a.code.toLowerCase().includes(val) || 
-                           a.name.toLowerCase().includes(val) || 
+                    return (a.code && a.code.toLowerCase().includes(val)) || 
+                           (a.name && a.name.toLowerCase().includes(val)) ||
                            (a.serial && a.serial.toLowerCase().includes(val));
                 });
 
                 if (matches.length === 0) {
                     const emptyDiv = document.createElement("div");
-                    emptyDiv.className = "autocomplete-item text-muted";
                     emptyDiv.style.padding = "10px";
+                    emptyDiv.style.color = "var(--text-secondary)";
+                    emptyDiv.style.fontSize = "12px";
                     emptyDiv.innerHTML = `
-                        <div style="margin-bottom: 6px; color: var(--text-secondary);">Ningún bien coincide con la búsqueda.</div>
-                        <button type="button" class="btn btn-primary btn-xs" id="btn-create-not-found" style="width: 100%; justify-content: center; font-size: 11px; padding: 4px 8px;">
-                            <i data-lucide="plus" style="width: 12px; height: 12px; margin-right: 4px;"></i> Crear Ficha Técnica
+                        No se encontró ningún bien con ese término.
+                        <button id="btn-create-not-found" class="btn btn-primary btn-sm" style="margin-top: 10px; width: 100%;">
+                            + Crear Ficha Nueva
                         </button>
                     `;
                     reportAssetDropdown.appendChild(emptyDiv);
@@ -808,11 +967,18 @@
                         <div class="item-sub">Marca: ${m.brand} | Serie: ${m.serial || 'N/A'}</div>
                     `;
                     item.addEventListener("click", () => {
-                        AF.loadReportDocument(m);
+                        try {
+                            AF.loadReportDocument(m);
+                        } catch (err) {
+                            alert("Error al cargar ficha: " + err.message);
+                        }
                     });
                     reportAssetDropdown.appendChild(item);
                 });
                 reportAssetDropdown.classList.add("active");
+                } catch (err) {
+                    alert("Error en buscador: " + err.message);
+                }
             };
 
             reportAssetSearch.addEventListener("input", showMatches);
@@ -835,6 +1001,12 @@
 
                 // Read all fields
                 activeReportAsset.code = document.getElementById("rep-code").value.trim();
+                const repCodigoPat = document.getElementById("rep-codigo-pat");
+                if (repCodigoPat) {
+                    if (!activeReportAsset.specs) activeReportAsset.specs = {};
+                    activeReportAsset.specs.codigo_patrimonial = repCodigoPat.value.trim();
+                }
+                activeReportAsset.type = document.getElementById("rep-type") ? document.getElementById("rep-type").value : "new_arrival";
                 activeReportAsset.category = document.getElementById("rep-category").value.trim();
                 activeReportAsset.name = document.getElementById("rep-name").value.trim();
                 activeReportAsset.brand = document.getElementById("rep-brand").value.trim();
@@ -857,6 +1029,13 @@
                 activeReportAsset.specs["tiempo_garantia"] = document.getElementById("rep-garantia").value.trim();
                 activeReportAsset.specs["costo"] = document.getElementById("rep-costo").value.trim();
                 activeReportAsset.specs["observaciones"] = document.getElementById("rep-obs").value.trim();
+                
+                // Inventory fields (Equipos de Oficina)
+                if (document.getElementById("rep-dimensiones")) activeReportAsset.specs["dimensiones"] = document.getElementById("rep-dimensiones").value.trim();
+                if (document.getElementById("rep-otros")) activeReportAsset.specs["otros"] = document.getElementById("rep-otros").value.trim();
+                if (document.getElementById("rep-situacion")) activeReportAsset.specs["situacion"] = document.getElementById("rep-situacion").value;
+                if (document.getElementById("rep-estado")) activeReportAsset.specs["estado"] = document.getElementById("rep-estado").value;
+                if (document.getElementById("rep-inventariador")) activeReportAsset.specs["inventariador"] = document.getElementById("rep-inventariador").value.trim();
 
                 activeReportAsset.specs["dependencia"] = document.getElementById("rep-dependencia").value.trim();
                 activeReportAsset.specs["pabellon"] = document.getElementById("rep-pabellon").value.trim();
@@ -919,6 +1098,32 @@
             });
         }
 
+        let activeFichaTab = "office_equipment";
+
+        // Add tab listeners
+        const tabBtns = document.querySelectorAll(".ficha-tab-btn");
+        if (tabBtns.length > 0) {
+            tabBtns.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    tabBtns.forEach(b => {
+                        b.classList.remove("active");
+                        b.style.color = "var(--text-secondary)";
+                        b.style.borderBottomColor = "transparent";
+                    });
+                    btn.classList.add("active");
+                    btn.style.color = "var(--accent)";
+                    btn.style.borderBottomColor = "var(--accent)";
+                    
+                    activeFichaTab = btn.getAttribute("data-tab");
+                    const titleText = activeFichaTab === "office_equipment" ? "Listado de Equipos de Oficina" : "Listado de Nuevos Ingresos";
+                    const titleEl = document.getElementById("active-tab-title");
+                    if (titleEl) titleEl.textContent = titleText;
+                    
+                    AF.renderReportsList();
+                });
+            });
+        }
+
         // List View Renderer
         AF.renderReportsList = function() {
             const listBody = document.getElementById("table-reports-list-body");
@@ -927,11 +1132,13 @@
             if (!listBody) return;
             listBody.innerHTML = "";
 
-            const assets = AF.state.assets || [];
+            const allAssets = AF.state.assets || [];
+            const assets = allAssets.filter(a => (a.type || 'office_equipment') === activeFichaTab);
+
             if (countBadge) countBadge.textContent = `${assets.length} Fichas`;
 
             if (assets.length === 0) {
-                listBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 25px; color: var(--text-secondary);">No hay fichas técnicas registradas. Haz clic en 'Crear Ficha Técnica' para empezar.</td></tr>`;
+                listBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 25px; color: var(--text-secondary);">No hay fichas técnicas registradas en esta categoría.</td></tr>`;
                 return;
             }
 
