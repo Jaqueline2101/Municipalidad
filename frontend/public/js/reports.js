@@ -1345,6 +1345,22 @@
             }
         });
 
+        // Setup datalist for Cartas from Trámite
+        const repCartaInput = document.getElementById("rep-carta");
+        if (repCartaInput) {
+            repCartaInput.addEventListener("focus", () => {
+                const datalist = document.getElementById("tramite-cartas-list");
+                if (datalist && AF.state && AF.state.documents) {
+                    datalist.innerHTML = "";
+                    AF.state.documents.forEach(doc => {
+                        const option = document.createElement("option");
+                        option.value = `${doc.docType} ${doc.docNro}`;
+                        datalist.appendChild(option);
+                    });
+                }
+            });
+        }
+
         // Setup real-time feature list updates
         const repFeaturesList = document.getElementById("rep-features");
         if (repFeaturesList) {
