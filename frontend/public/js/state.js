@@ -94,6 +94,10 @@ window.ActivoFlow = {
             this.updateSupabaseBadge(false);
         }
 
+        if (backendConnected && !this.realtimeInitialized) {
+            this.initRealtimeSync();
+        }
+
         // Validate active session status (Logout if deactivated)
         if (typeof AF !== 'undefined' && AF.checkActiveSessionStatus) {
             AF.checkActiveSessionStatus();
@@ -135,6 +139,50 @@ window.ActivoFlow = {
             console.error("Error al sincronizar datos en backend:", e);
             this.updateSupabaseBadge(false, "Sinc falló");
         }
+    },
+
+    initRealtimeSync: function() {
+        this.realtimeInitialized = true;
+        const source = new EventSource('/api/stream');
+        
+        source.onmessage = async (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'sync-updated') {
+                    // Fetch latest state silently
+                    const res = await fetch("/api/state");
+                    if (res.ok) {
+                        const result = await res.json();
+                        if (result.success && result.data) {
+                            this.state = result.data;
+                            if (!this.state.documents) this.state.documents = [];
+                            if (!this.state.usuarios) this.state.usuarios = [];
+                            localStorage.setItem("activoflow_state", JSON.stringify(this.state));
+                            
+                            // Silently re-render views to reflect new data
+                            if (typeof AF !== 'undefined') {
+                                if (AF.renderDashboardMetrics) AF.renderDashboardMetrics();
+                                if (AF.renderCatalogTable) AF.renderCatalogTable();
+                                if (AF.renderReportsList) AF.renderReportsList();
+                                if (AF.renderLocationsTables) AF.renderLocationsTables();
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error processing SSE message:", e);
+            }
+        };
+
+        source.onerror = (err) => {
+            console.error("SSE connection error", err);
+            source.close();
+            // Try to reconnect after 5 seconds
+            setTimeout(() => {
+                this.realtimeInitialized = false;
+                if (this.useBackend) this.initRealtimeSync();
+            }, 5000);
+        };
     },
 
     // Update connection indicator badge

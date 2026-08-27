@@ -1,3 +1,4 @@
+let sseClients = [];
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -153,6 +154,25 @@ async function findDocumentFile(docType, docNro, prefix = '') {
     return null;
 }
 
+
+// Endpoint para SSE (Server-Sent Events) - Sincronización en tiempo real
+app.get('/api/stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders(); // flush the headers to establish SSE with client
+
+    const clientId = Date.now();
+    const newClient = {
+        id: clientId,
+        res
+    };
+    sseClients.push(newClient);
+
+    req.on('close', () => {
+        sseClients = sseClients.filter(client => client.id !== clientId);
+    });
+});
 
 // Endpoint para comprobar estado y obtener todo el estado inicial de base de datos
 app.get('/api/state', async (req, res) => {
@@ -534,3 +554,4 @@ app.get('*', (req, res, next) => {
 app.listen(PORT, () => {
     console.log(`[PatriGest Backend] Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
