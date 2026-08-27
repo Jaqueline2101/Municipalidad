@@ -59,6 +59,7 @@ const initDb = async () => {
         await dbRun(`CREATE TABLE IF NOT EXISTS assets (
             id TEXT PRIMARY KEY,
             code TEXT NOT NULL,
+            type TEXT,
             name TEXT NOT NULL,
             category TEXT,
             brand TEXT,
@@ -112,6 +113,13 @@ const initDb = async () => {
         try {
             await dbRun("ALTER TABLE documents ADD COLUMN reentry TEXT");
             console.log("[SQLite DB] Columna reentry agregada a tabla documents.");
+        } catch (alterErr) {
+            // Se ignora si la columna ya existe
+        }
+
+        try {
+            await dbRun("ALTER TABLE assets ADD COLUMN type TEXT");
+            console.log("[SQLite DB] Columna type agregada a tabla assets.");
         } catch (alterErr) {
             // Se ignora si la columna ya existe
         }

@@ -198,6 +198,7 @@ app.get('/api/state', async (req, res) => {
         const assets = assetsRaw.map(a => ({
             id: a.id,
             code: a.code,
+            type: a.type,
             name: a.name,
             category: a.category,
             brand: a.brand,
@@ -306,10 +307,10 @@ app.post('/api/sync', async (req, res) => {
         // D. Sincronizar Assets
         for (const a of assets || []) {
             await dbRun(
-                `INSERT INTO assets (id, code, name, category, brand, model, serial, control_type, quantity, state, purchase_order, provider, purchase_date, warranty_end, location, specs)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO assets (id, code, type, name, category, brand, model, serial, control_type, quantity, state, purchase_order, provider, purchase_date, warranty_end, location, specs)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    a.id, a.code, a.name, a.category, a.brand, a.model, a.serial,
+                    a.id, a.code, a.type || null, a.name, a.category, a.brand, a.model, a.serial,
                     a.controlType, a.quantity, a.state || 'Bueno', a.purchaseOrder,
                     a.provider, a.purchaseDate, a.warrantyEnd,
                     a.location ? JSON.stringify(a.location) : null,
