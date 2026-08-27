@@ -394,6 +394,12 @@
                         <i data-lucide="file-check" style="width: 12px; height: 12px;"></i>
                     </button>
                 `;
+            } else {
+                fichaBtnHtml = `
+                    <button type="button" class="btn btn-xs btn-create-linked-ficha" data-doc-nro="${d.docNro}" data-doc-type="${d.docType}" data-sender="${d.sender}" title="Crear Ficha Técnica con los datos de esta Carta" style="padding: 5px; height: auto; background: var(--accent); border-color: var(--accent); color: white;">
+                        <i data-lucide="file-plus" style="width: 12px; height: 12px;"></i>
+                    </button>
+                `;
             }
 
             responseSnippet += reentrySnippet;
@@ -435,7 +441,30 @@
             tableBody.appendChild(tr);
         });
 
-        if (window.lucide) window.lucide.createIcons();
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+
+        // Attach event listeners to buttons dynamically
+        tableBody.querySelectorAll(".btn-create-linked-ficha").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const docNro = e.currentTarget.dataset.docNro;
+                const docType = e.currentTarget.dataset.docType;
+                const sender = e.currentTarget.dataset.sender;
+
+                if (window.AF && window.AF.switchTab) {
+                    window.AF.switchTab("fichas");
+                }
+                
+                if (window.AF && window.AF.triggerCreateNewFicha) {
+                    const cartaStr = `${docType} ${docNro}`;
+                    window.AF.triggerCreateNewFicha('new_arrival', {
+                        carta_recibido: cartaStr,
+                        dependencia: sender
+                    });
+                }
+            });
+        });
 
         // Ficha Tecnica Link Listeners
         tableBody.querySelectorAll(".btn-view-linked-ficha").forEach(btn => {

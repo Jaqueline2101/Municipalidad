@@ -165,6 +165,7 @@ window.ActivoFlow = {
                                 if (AF.renderCatalogTable) AF.renderCatalogTable();
                                 if (AF.renderReportsList) AF.renderReportsList();
                                 if (AF.renderLocationsTables) AF.renderLocationsTables();
+                                if (AF.renderTramiteTable) AF.renderTramiteTable();
                             }
                         }
                     }

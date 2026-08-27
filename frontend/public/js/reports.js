@@ -857,7 +857,7 @@
             }
         }
 
-        const triggerCreateNewFicha = (fichaType = 'new_arrival') => {
+        AF.triggerCreateNewFicha = (fichaType = 'new_arrival', prefillData = null) => {
             let count = AF.state.assets.filter(a => (a.type || 'office_equipment') === fichaType).length + 1;
             const newAsset = {
                 id: "AST-" + Date.now(),
@@ -888,6 +888,10 @@
                     observaciones: ""
                 }
             };
+            if (prefillData) {
+                if (prefillData.carta_recibido) newAsset.specs.carta_recibido = prefillData.carta_recibido;
+                if (prefillData.dependencia) newAsset.specs.dependencia = prefillData.dependencia;
+            }
             AF.loadReportDocument(newAsset);
             
             // Focus on code input
@@ -916,17 +920,17 @@
         }
 
         const btnNewReportOffice = document.getElementById("btn-new-report-office");
-        if (btnNewReportOffice) btnNewReportOffice.addEventListener("click", () => triggerCreateNewFicha('office_equipment'));
+        if (btnNewReportOffice) btnNewReportOffice.addEventListener("click", () => AF.triggerCreateNewFicha('office_equipment'));
 
         const btnNewReportNew = document.getElementById("btn-new-report-new");
-        if (btnNewReportNew) btnNewReportNew.addEventListener("click", () => triggerCreateNewFicha('new_arrival'));
+        if (btnNewReportNew) btnNewReportNew.addEventListener("click", () => AF.triggerCreateNewFicha('new_arrival'));
 
         // Bind empty state buttons
         const btnEmptyCreateOffice = document.getElementById("btn-empty-create-report-office");
-        if (btnEmptyCreateOffice) btnEmptyCreateOffice.addEventListener("click", () => triggerCreateNewFicha('office_equipment'));
+        if (btnEmptyCreateOffice) btnEmptyCreateOffice.addEventListener("click", () => AF.triggerCreateNewFicha('office_equipment'));
 
         const btnEmptyCreateNew = document.getElementById("btn-empty-create-new");
-        if (btnEmptyCreateNew) btnEmptyCreateNew.addEventListener("click", () => triggerCreateNewFicha('new_arrival'));
+        if (btnEmptyCreateNew) btnEmptyCreateNew.addEventListener("click", () => AF.triggerCreateNewFicha('new_arrival'));
 
         // Autocomplete search
         if (reportAssetSearch && reportAssetDropdown) {
@@ -979,7 +983,7 @@
                         btnCreateNotFound.addEventListener("click", (ev) => {
                             ev.stopPropagation();
                             reportAssetDropdown.classList.remove("active");
-                            triggerCreateNewFicha();
+                            AF.triggerCreateNewFicha();
                         });
                     }
                     return;
