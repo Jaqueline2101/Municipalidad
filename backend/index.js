@@ -156,6 +156,7 @@ async function findDocumentFile(docType, docNro, prefix = '') {
 
 // Endpoint para comprobar estado y obtener todo el estado inicial de base de datos
 app.get('/api/state', async (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     try {
         const sedes = await dbAll("SELECT * FROM sedes");
         
