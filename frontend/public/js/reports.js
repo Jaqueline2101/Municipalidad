@@ -546,6 +546,21 @@
 
         document.getElementById("report-document-wrapper").classList.remove("hidden");
         document.getElementById("btn-print-sheet").removeAttribute("disabled");
+        
+        // Dispatch input events to trigger live preview bindings for any fields
+        const allRepFields = [
+            "rep-name", "rep-brand", "rep-model", "rep-color", "rep-serial", "rep-carta",
+            "rep-pedido-nro", "rep-pedido-fecha", "rep-orden-nro", "rep-orden-fecha",
+            "rep-dependencia", "rep-pabellon", "rep-resp-name", "rep-resp-cargo",
+            "rep-resp-phone", "rep-resp-email", "rep-provider", "rep-provider-addr",
+            "rep-guia", "rep-garantia", "rep-costo", "rep-obs", "rep-dimensiones",
+            "rep-otros", "rep-situacion", "rep-estado", "rep-inventariador"
+        ];
+        allRepFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.dispatchEvent(new Event('input'));
+        });
+        
         } catch (err) {
             console.error("Error in loadReportDocument:", err);
             alert("Error in loadReportDocument: " + err.message + "\nLine: " + err.lineNumber);
