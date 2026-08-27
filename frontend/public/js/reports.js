@@ -799,6 +799,18 @@
                         if (repModel) repModel.dispatchEvent(new Event('input'));
                         if (repColor) repColor.dispatchEvent(new Event('input'));
                         if (repFeatures) repFeatures.dispatchEvent(new Event('input'));
+                        
+                        // Dispatch input for all other elements to update preview
+                        const fieldsToUpdate = [
+                            repName, repBrand, repModel, repColor, repCategory, repSerial, repCarta,
+                            repDimensiones, repOtros, repSituacion, repEstado, repInventariador,
+                            repPedidoNro, repPedidoFecha, repOrdenNro, repOrdenFecha, repRespCargo,
+                            repRespPhone, repRespEmail, repProvider, repProviderAddr, repGuia,
+                            repGarantia, repCosto, repObs, repDependencia, repPabellon
+                        ];
+                        fieldsToUpdate.forEach(el => {
+                            if (el) el.dispatchEvent(new Event('input'));
+                        });
 
                         repNameDropdown.innerHTML = "";
                         repNameDropdown.style.display = "none";
@@ -1263,6 +1275,70 @@
                 }
             });
         }
+        // Setup real-time preview bindings for Fichas Técnicas
+        const bindings = [
+            { inputId: "rep-name", displayId: "doc-description-full" },
+            { inputId: "rep-brand", displayId: "doc-brand" },
+            { inputId: "rep-model", displayId: "doc-model" },
+            { inputId: "rep-color", displayId: "doc-color" },
+            { inputId: "rep-serial", displayId: "doc-serial" },
+            { inputId: "rep-costo", displayId: "doc-cost-s3", format: (v) => v.startsWith("S/") ? v : `S/ ${v}` },
+            { inputId: "rep-carta", displayId: "doc-carta-recibido" },
+            { inputId: "rep-pedido-nro", displayId: "doc-pedido-nro" },
+            { inputId: "rep-pedido-fecha", displayId: "doc-pedido-fecha", format: (v) => v ? AF.formatDate(v) : "—" },
+            { inputId: "rep-orden-nro", displayIds: ["doc-orden-nro", "doc-orden-nro-s3"] },
+            { inputId: "rep-orden-fecha", displayIds: ["doc-orden-fecha", "doc-purchase-date-s3"] },
+            { inputId: "rep-dependencia", displayId: "doc-dependencia" },
+            { inputId: "rep-pabellon", displayId: "doc-pabellon" },
+            { inputId: "rep-resp-name", displayId: "doc-responsible-name-s3", format: (v) => v.toUpperCase() },
+            { inputId: "rep-resp-cargo", displayId: "doc-responsible-charge", format: (v) => v.toUpperCase() },
+            { inputId: "rep-resp-phone", displayId: "doc-responsible-phone" },
+            { inputId: "rep-resp-email", displayId: "doc-responsible-email" },
+            { inputId: "rep-provider", displayId: "doc-provider-s3", format: (v) => v.toUpperCase() },
+            { inputId: "rep-provider-addr", displayId: "doc-provider-address", format: (v) => v.toUpperCase() },
+            { inputId: "rep-guia", displayId: "doc-guia-nro" },
+            { inputId: "rep-garantia", displayId: "doc-warranty-time", format: (v) => v.toUpperCase() },
+            { inputId: "rep-obs", displayId: "doc-observaciones", format: (v) => v.toUpperCase() },
+            { inputId: "rep-dimensiones", displayId: "doc-dimensiones" },
+            { inputId: "rep-otros", displayId: "doc-otros" },
+            { inputId: "rep-situacion", displayId: "doc-situacion" },
+            { inputId: "rep-estado", displayId: "doc-estado" },
+            { inputId: "rep-inventariador", displayId: "doc-elaborated-by" }
+        ];
+
+        bindings.forEach(binding => {
+            const el = document.getElementById(binding.inputId);
+            if (el) {
+                el.addEventListener("input", (e) => {
+                    const val = e.target.value.trim();
+                    const formatted = binding.format ? binding.format(val) : val;
+                    if (binding.displayId) {
+                        const disp = document.getElementById(binding.displayId);
+                        if (disp) disp.textContent = formatted || "—";
+                    }
+                    if (binding.displayIds) {
+                        binding.displayIds.forEach(id => {
+                            const disp = document.getElementById(id);
+                            if (disp) disp.textContent = formatted || "—";
+                        });
+                    }
+                });
+            }
+        });
+
+        // Setup real-time feature list updates
+        const repFeaturesList = document.getElementById("rep-features");
+        if (repFeaturesList) {
+            repFeaturesList.addEventListener("input", (e) => {
+                const list = e.target.value.split("\n").map(l => l.trim()).filter(Boolean);
+                const docList = document.getElementById("doc-features-list");
+                if (docList) {
+                    docList.innerHTML = list.map(item => `<li>${item}</li>`).join("");
+                }
+            });
+        }
     };
+
+    window.ActivoFlow = AF;
 
 })(window.ActivoFlow);
