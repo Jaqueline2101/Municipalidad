@@ -59,7 +59,7 @@ window.ActivoFlow = {
 
         if (backendConnected) {
             try {
-                const res = await fetch("/api/state");
+                const res = await fetch(`/api/state?t=${Date.now()}`);
                 if (!res.ok) {
                     const errorData = await res.json();
                     throw new Error(errorData.error || "Error en la respuesta del backend");
@@ -150,7 +150,7 @@ window.ActivoFlow = {
                 const data = JSON.parse(event.data);
                 if (data.type === 'sync-updated') {
                     // Fetch latest state silently
-                    const res = await fetch("/api/state");
+                    const res = await fetch(`/api/state?t=${Date.now()}`);
                     if (res.ok) {
                         const result = await res.json();
                         if (result.success && result.data) {
