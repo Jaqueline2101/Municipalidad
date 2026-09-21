@@ -79,9 +79,6 @@
                         <button class="btn btn-outline btn-xs btn-edit-asset" data-id="${a.id}" title="Editar Bien">
                             <i data-lucide="edit-3" style="width:12px;height:12px;"></i>
                         </button>
-                        <button class="btn btn-danger btn-xs btn-delete-asset" data-id="${a.id}" title="Eliminar/Dar de Baja">
-                            <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
-                        </button>
                     </div>
                 </td>
             `;
@@ -113,22 +110,6 @@
             btn.addEventListener("click", () => {
                 const id = btn.getAttribute("data-id");
                 AF.openAssetFormModal(id);
-            });
-        });
-
-        document.querySelectorAll(".btn-delete-asset").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const id = btn.getAttribute("data-id");
-                const asset = AF.state.assets.find(x => x.id === id);
-                if (!asset) return;
-
-                if (confirm(`¿Está seguro de que desea eliminar el bien "${asset.name}" (${asset.code}) de forma permanente?`)) {
-                    AF.state.assets = AF.state.assets.filter(a => a.id !== id);
-                    AF.saveStore();
-                    AF.renderCatalogTable();
-                    AF.renderDashboardMetrics();
-                    AF.showToast(`Bien ${asset.code} eliminado correctamente.`, "danger");
-                }
             });
         });
     };

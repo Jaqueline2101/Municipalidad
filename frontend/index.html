@@ -75,91 +75,14 @@
                                     <i data-lucide="log-in" style="width: 16px; height: 16px; color: #0288d1;"></i>
                                     <span>Ingresar</span>
                                 </button>
-                                <button type="button" id="btn-goto-register-juliaca" class="juliaca-btn-submit">
-                                    <i data-lucide="user-plus" style="width: 16px; height: 16px; color: #0288d1;"></i>
-                                    <span>Registrar</span>
-                                </button>
                             </div>
                         </form>
 
-                        <!-- Dedicated Google Sign-In Button below the form -->
-                        <div class="google-signin-wrapper" style="margin-top: 20px; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                            <button type="button" id="btn-google-login-juliaca" class="btn-google-login-juliaca" style="display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #ffffff; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 16px; font-size: 13.5px; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s ease;">
-                                <svg class="google-icon" viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-                                </svg>
-                                Inicia con Google
-                            </button>
-                        </div>
                     </div>
                     
-                    <!-- Panel Registrarse (Register) -->
-                    <div id="panel-register" class="auth-panel hidden">
-                        <h1 class="juliaca-system-title">Registrar Administrador</h1>
-                        
-                        <form id="form-register" class="juliaca-form">
-                            <div class="juliaca-form-row">
-                                <label for="reg-name">Nombre</label>
-                                <div class="juliaca-input-wrapper">
-                                    <input type="text" id="reg-name" required placeholder="Nombre Completo">
-                                </div>
-                            </div>
-                            
-                            <div class="juliaca-form-row">
-                                <label for="reg-email">Usuario / Correo</label>
-                                <div class="juliaca-input-wrapper">
-                                    <input type="email" id="reg-email" required placeholder="ejemplo@munisanroman.gob.pe">
-                                </div>
-                            </div>
-                            
-                            <div class="juliaca-form-row">
-                                <label for="reg-password">Contraseña</label>
-                                <div class="juliaca-input-wrapper">
-                                    <input type="password" id="reg-password" required placeholder="Mínimo 6 caracteres">
-                                </div>
-                            </div>
-                            
-                            <div class="juliaca-form-row">
-                                <label for="reg-role">Rol</label>
-                                <div class="juliaca-input-wrapper">
-                                    <select id="reg-role" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; background-color: white; color: #374151; font-size: 13.5px; box-sizing: border-box;">
-                                        <option value="Operador" selected>Operador (Acceso completo sin ver contraseñas)</option>
-                                        <option value="Administrador">Administrador (Acceso total con contraseñas)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="juliaca-btn-row" style="display: flex; gap: 15px; justify-content: center;">
-                                <button type="submit" class="juliaca-btn-submit">
-                                    <i data-lucide="user-plus" style="width: 16px; height: 16px; color: #0288d1;"></i>
-                                    <span>Registrar</span>
-                                </button>
-                                <button type="button" id="btn-cancel-register-juliaca" class="juliaca-btn-submit">
-                                    <i data-lucide="arrow-left" style="width: 16px; height: 16px; color: #64748b;"></i>
-                                    <span>Regresar</span>
-                                </button>
-                            </div>
-                        </form>
-
-                        <div style="text-align: center; margin-top: 20px; font-size: 13.5px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                            <span style="color: #64748b;">¿Ya tienes cuenta? <a href="#" id="link-goto-login-juliaca" style="color: #0288d1; font-weight: 600; text-decoration: underline;">Iniciar Sesión</a></span>
-                        </div>
-                    </div>
+                    <!-- Panel Registrarse removido -->
                 </div>
             </div>
-            
-            <!-- Bottom Footer Links -->
-            <div class="juliaca-login-footer">
-                <a href="#"><i data-lucide="wrench"></i> Requisitos de Sistema</a>
-                <span class="juliaca-footer-divider">|</span>
-                <a href="#"><i data-lucide="help-circle"></i> Manual de Ayuda</a>
-                <span class="juliaca-footer-divider">|</span>
-                <a href="#"><i data-lucide="video"></i> Video Tutorial</a>
-            </div>
-            
         </div>
     </div>
 
@@ -208,24 +131,17 @@
         <main class="main-content">
             <!-- Header -->
             <header class="main-header" id="app-header">
-                <div class="header-search">
-                    <div class="search-input-wrapper">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" id="global-search" placeholder="Búsqueda rápida por código o serie...">
-                        <div class="search-results-dropdown" id="global-search-dropdown"></div>
-                    </div>
+                <div class="header-search" style="display: none;">
+                    <!-- Búsqueda global removida a petición del usuario -->
                 </div>
 
-                <div class="header-actions">
-                    <button class="btn btn-outline btn-xs" id="btn-supabase-config" style="display: flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 20px;">
-                        <i data-lucide="database" style="width: 14px; height: 14px;"></i>
-                        <span id="supabase-status-text">BD: Local (Navegador)</span>
-                    </button>
+                <div class="header-actions" style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+
                     <div class="user-profile" style="display: flex; align-items: center; gap: 10px;">
                         <div class="user-avatar" id="user-avatar-img">JD</div>
-                        <div class="user-info">
-                            <span class="user-name" id="display-user-name">Juan Delgado</span>
-                            <span class="user-role" id="display-user-role">Administrador</span>
+                        <div class="user-info" style="display: flex; flex-direction: column; line-height: 1.2;">
+                            <span class="user-name" id="display-user-name" style="font-weight: 600; color: #1e293b; font-size: 14px;">Juan Delgado</span>
+                            <span class="user-role" id="display-user-role" style="font-size: 12px; color: #64748b;">Administrador</span>
                         </div>
                         <button class="btn btn-outline" id="btn-logout" style="padding: 6px; border-radius: 50%; min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-color: rgba(220, 38, 38, 0.3); color: var(--danger); cursor: pointer;" title="Cerrar Sesión" onclick="ActivoFlow.logout()">
                             <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
@@ -664,11 +580,17 @@
                                     <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label for="rep-brand" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Marca</label>
-                                            <input type="text" id="rep-brand" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);">
+                                            <div style="position: relative; width: 100%;">
+                                                <input type="text" id="rep-brand" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);" autocomplete="off">
+                                                <div class="autocomplete-dropdown" id="rep-brand-dropdown" style="top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; display: none; z-index: 100;"></div>
+                                            </div>
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label for="rep-model" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Modelo</label>
-                                            <input type="text" id="rep-model" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);">
+                                            <div style="position: relative; width: 100%;">
+                                                <input type="text" id="rep-model" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);" autocomplete="off">
+                                                <div class="autocomplete-dropdown" id="rep-model-dropdown" style="top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; display: none; z-index: 100;"></div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
@@ -704,8 +626,10 @@
                                     <h4 style="font-size: 11px; font-weight: 700; color: var(--accent); margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">2. Requerimiento</h4>
                                     <div class="form-group" style="margin-bottom: 10px;">
                                         <label for="rep-carta" style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Nro. de Carta Recibido</label>
-                                        <input type="text" id="rep-carta" list="tramite-cartas-list" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);" autocomplete="off">
-                                        <datalist id="tramite-cartas-list"></datalist>
+                                        <div style="position: relative; width: 100%;">
+                                            <input type="text" id="rep-carta" style="padding: 8px 12px; font-size: 13px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-app); color: var(--text-primary);" autocomplete="off">
+                                            <div class="autocomplete-dropdown" id="rep-carta-dropdown" style="top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; display: none; z-index: 100;"></div>
+                                        </div>
                                     </div>
                                     <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                                         <div class="form-group" style="margin-bottom: 0;">
@@ -1441,6 +1365,9 @@
                             <h1>Usuarios y Accesos</h1>
                             <p class="section-subtitle">Visualiza y controla el personal con acceso de administrador al sistema</p>
                         </div>
+                        <button class="btn btn-primary" id="btn-add-user" data-action="open-modal-user">
+                            <i data-lucide="user-plus"></i> Nuevo Usuario
+                        </button>
                     </div>
 
                     <!-- Main Users Table -->
@@ -1983,6 +1910,45 @@
             <div class="modal-body" id="view-doc-body" style="padding: 0; flex: 1; min-height: 70vh; background: #0f172a; overflow: hidden; display: flex; flex-direction: column;">
                 <!-- Dynamically injected iframe or image -->
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nuevo Usuario -->
+    <div class="modal" id="modal-user">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nuevo Usuario</h3>
+                <button class="modal-close" data-close="modal-user">&times;</button>
+            </div>
+            <form id="form-register">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="reg-name" class="required-label">Nombre Completo</label>
+                        <input type="text" id="reg-name" required placeholder="Nombre Completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email" class="required-label">Usuario / Correo</label>
+                        <input type="email" id="reg-email" required placeholder="ejemplo@munisanroman.gob.pe">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password" class="required-label">Contraseña</label>
+                        <input type="password" id="reg-password" required placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-role" class="required-label">Rol</label>
+                        <div class="select-wrapper">
+                            <select id="reg-role" required>
+                                <option value="Operador" selected>Operador</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close="modal-user">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Usuario</button>
+                </div>
+            </form>
         </div>
     </div>
 

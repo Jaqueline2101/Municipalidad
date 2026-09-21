@@ -118,14 +118,8 @@
                 // Check user existence
                 const userExists = await checkIfUserExists(email);
                 if (!userExists) {
-                    AF.showToast("El usuario no existe. Redirigiendo a registro...", "warning");
-                    setTimeout(() => {
-                        const regEmail = document.getElementById("reg-email");
-                        if (regEmail) regEmail.value = email;
-                        
-                        panelLogin.classList.add("hidden");
-                        panelRegister.classList.remove("hidden");
-                    }, 1200);
+                    if (errBanner) errBanner.classList.remove("hidden");
+                    AF.showToast("El usuario no existe. Consulte a un administrador.", "danger");
                     return;
                 }
 
@@ -239,7 +233,9 @@
                                     localStorage.setItem("activoflow_state", JSON.stringify(AF.state));
                                 }
                             }
-                            if (linkGotoLogin) linkGotoLogin.click();
+                            AF.closeModal("modal-user");
+                            formRegister.reset();
+                            if (AF.renderUsersTable) AF.renderUsersTable();
                         } else {
                             const errData = await res.json();
                             AF.showToast("Error de registro: " + errData.error, "danger");
@@ -270,8 +266,9 @@
             localStorage.setItem("activoflow_state", JSON.stringify(AF.state));
             AF.showToast("Cuenta registrada con éxito localmente.", "success");
             
-            // Switch to login form
-            if (linkGotoLogin) linkGotoLogin.click();
+            AF.closeModal("modal-user");
+            if (formRegister) formRegister.reset();
+            if (AF.renderUsersTable) AF.renderUsersTable();
         }
 
         // Helper to validate offline credentials
@@ -334,6 +331,17 @@
                 avatar.textContent = initials || "AD";
             }
 
+            // Ocultar o mostrar el menú de Usuarios dependiendo del rol
+            const btnNavUsers = document.getElementById("btn-nav-users");
+            if (btnNavUsers) {
+                const userRole = user.role ? user.role.toLowerCase() : '';
+                if (userRole === 'administrador') {
+                    btnNavUsers.style.display = "flex";
+                } else {
+                    btnNavUsers.style.display = "none";
+                }
+            }
+
             // Refresh user tables & indicators
             if (AF.renderUsersTable) AF.renderUsersTable();
 
@@ -394,7 +402,8 @@
         }
 
         // Determine if current user is maximum administrator
-        const currentIsAdmin = AF.currentUser && AF.currentUser.role && AF.currentUser.role.toLowerCase() === 'administrador';
+        const userRole = AF.currentUser && AF.currentUser.role ? AF.currentUser.role.toLowerCase() : '';
+        const currentIsAdmin = userRole === 'administrador';
 
         users.forEach(u => {
             const tr = document.createElement("tr");
@@ -444,7 +453,7 @@
                 actionBtnHtml = `<span style="font-size: 11px; color: var(--text-secondary); font-style: italic;">Sesión Activa</span>`;
             } else if (isDefaultAdmin) {
                 actionBtnHtml = `<span style="font-size: 11px; color: var(--text-secondary); font-style: italic;">Sistema</span>`;
-            } else {
+            } else if (currentIsAdmin) {
                 const btnColor = isActive ? '#ef4444' : '#10b981';
                 const btnText = isActive ? 'Desactivar' : 'Activar';
                 const btnClass = isActive ? 'btn-deactivate-user' : 'btn-activate-user';
@@ -458,6 +467,8 @@
                         </button>
                     </div>
                 `;
+            } else {
+                actionBtnHtml = `<span style="font-size: 11px; color: var(--text-secondary); font-style: italic;">Sin acceso</span>`;
             }
 
             tr.innerHTML = `

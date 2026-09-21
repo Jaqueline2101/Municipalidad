@@ -725,18 +725,28 @@
             });
         });
 
-        // Autocompletado predictivo para el campo "Descripción del Equipo" basado en la categoría
-        const repName = document.getElementById("rep-name");
+        // Autocompletado predictivo para el campo "Descripción del Equipo", "Marca" y "Modelo"
         const repCategory = document.getElementById("rep-category");
-        const repNameDropdown = document.getElementById("rep-name-dropdown");
+        
+        const autocompleteFields = [
+            { input: document.getElementById("rep-name"), dropdown: document.getElementById("rep-name-dropdown"), type: 'name' },
+            { input: document.getElementById("rep-brand"), dropdown: document.getElementById("rep-brand-dropdown"), type: 'brand' },
+            { input: document.getElementById("rep-model"), dropdown: document.getElementById("rep-model-dropdown"), type: 'model' }
+        ];
 
-        if (repName && repNameDropdown) {
-            const showNameMatches = () => {
+        autocompleteFields.forEach(field => {
+            if (!field.input || !field.dropdown) return;
+
+            const showMatches = () => {
                 const currentCategory = (repCategory ? repCategory.value : "").trim().toLowerCase();
-                const currentName = repName.value.trim().toLowerCase();
+                const currentValue = field.input.value.trim().toLowerCase();
                 
-                repNameDropdown.innerHTML = "";
-                repNameDropdown.style.display = "none";
+                // Ocultar todos los dropdowns
+                autocompleteFields.forEach(f => {
+                    if (f.dropdown) f.dropdown.style.display = "none";
+                });
+                
+                field.dropdown.innerHTML = "";
 
                 // Filtrar bienes que coincidan
                 const matches = [];
@@ -761,10 +771,16 @@
                     }
                 });
 
-                // Si el usuario escribió algo, filtrar también por ese texto
+                // Filtrar por el texto del campo actual
                 let filtered = matches;
-                if (currentName) {
-                    filtered = matches.filter(ast => ast.name.toLowerCase().includes(currentName));
+                if (currentValue) {
+                    if (field.type === 'name') {
+                        filtered = matches.filter(ast => ast.name.toLowerCase().includes(currentValue));
+                    } else if (field.type === 'brand') {
+                        filtered = matches.filter(ast => (ast.brand || "").toLowerCase().includes(currentValue));
+                    } else if (field.type === 'model') {
+                        filtered = matches.filter(ast => (ast.model || "").toLowerCase().includes(currentValue));
+                    }
                 }
 
                 if (filtered.length === 0) return;
@@ -778,13 +794,13 @@
                     `;
                     
                     item.addEventListener("click", () => {
-                        repName.value = ast.name || "";
-                        
+                        const repName = document.getElementById("rep-name");
                         const repBrand = document.getElementById("rep-brand");
                         const repModel = document.getElementById("rep-model");
                         const repColor = document.getElementById("rep-color");
                         const repFeatures = document.getElementById("rep-features");
-
+                        
+                        if (repName) repName.value = ast.name || "";
                         if (repBrand) repBrand.value = ast.brand || "";
                         if (repModel) repModel.value = ast.model || "";
                         if (repColor) repColor.value = (ast.specs && ast.specs.color) || "";
@@ -808,16 +824,32 @@
                             }
                         }
 
-                        // Sincronizar eventos de input para actualizar vista previa instantánea
-                        repName.dispatchEvent(new Event('input'));
-                        if (repBrand) repBrand.dispatchEvent(new Event('input'));
-                        if (repModel) repModel.dispatchEvent(new Event('input'));
-                        if (repColor) repColor.dispatchEvent(new Event('input'));
-                        if (repFeatures) repFeatures.dispatchEvent(new Event('input'));
-                        
-                        // Dispatch input for all other elements to update preview
+                        // Dispatch input para todos los demás elementos para actualizar vista previa instantánea
+                        const repSerial = document.getElementById("rep-serial");
+                        const repCarta = document.getElementById("rep-carta");
+                        const repDimensiones = document.getElementById("rep-dimensiones");
+                        const repOtros = document.getElementById("rep-otros");
+                        const repSituacion = document.getElementById("rep-situacion");
+                        const repEstado = document.getElementById("rep-estado");
+                        const repInventariador = document.getElementById("rep-inventariador");
+                        const repPedidoNro = document.getElementById("rep-pedido-nro");
+                        const repPedidoFecha = document.getElementById("rep-pedido-fecha");
+                        const repOrdenNro = document.getElementById("rep-orden-nro");
+                        const repOrdenFecha = document.getElementById("rep-orden-fecha");
+                        const repRespCargo = document.getElementById("rep-resp-cargo");
+                        const repRespPhone = document.getElementById("rep-resp-phone");
+                        const repRespEmail = document.getElementById("rep-resp-email");
+                        const repProvider = document.getElementById("rep-provider");
+                        const repProviderAddr = document.getElementById("rep-provider-addr");
+                        const repGuia = document.getElementById("rep-guia");
+                        const repGarantia = document.getElementById("rep-garantia");
+                        const repCosto = document.getElementById("rep-costo");
+                        const repObs = document.getElementById("rep-obs");
+                        const repDependencia = document.getElementById("rep-dependencia");
+                        const repPabellon = document.getElementById("rep-pabellon");
+
                         const fieldsToUpdate = [
-                            repName, repBrand, repModel, repColor, repCategory, repSerial, repCarta,
+                            repName, repBrand, repModel, repColor, repCategory, repSerial, repCarta, repFeatures,
                             repDimensiones, repOtros, repSituacion, repEstado, repInventariador,
                             repPedidoNro, repPedidoFecha, repOrdenNro, repOrdenFecha, repRespCargo,
                             repRespPhone, repRespEmail, repProvider, repProviderAddr, repGuia,
@@ -827,34 +859,39 @@
                             if (el) el.dispatchEvent(new Event('input'));
                         });
 
-                        repNameDropdown.innerHTML = "";
-                        repNameDropdown.style.display = "none";
+                        field.dropdown.innerHTML = "";
+                        field.dropdown.style.display = "none";
                     });
 
-                    repNameDropdown.appendChild(item);
+                    field.dropdown.appendChild(item);
                 });
 
-                repNameDropdown.style.display = "block";
+                field.dropdown.style.display = "block";
             };
 
-            repName.addEventListener("input", showNameMatches);
-            repName.addEventListener("focus", showNameMatches);
-            repName.addEventListener("click", showNameMatches);
+            field.input.addEventListener("input", showMatches);
+            field.input.addEventListener("focus", showMatches);
+            field.input.addEventListener("click", showMatches);
+        });
 
-            // Cerrar menú al hacer clic afuera
-            document.addEventListener("click", (e) => {
-                if (!e.target.closest("#rep-name") && !e.target.closest("#rep-name-dropdown")) {
-                    repNameDropdown.style.display = "none";
+        // Cerrar menú al hacer clic afuera
+        document.addEventListener("click", (e) => {
+            autocompleteFields.forEach(field => {
+                if (field.input && field.dropdown) {
+                    if (!e.target.closest(`#${field.input.id}`) && !e.target.closest(`#${field.dropdown.id}`)) {
+                        field.dropdown.style.display = "none";
+                    }
                 }
             });
+        });
 
-            if (repCategory) {
-                repCategory.addEventListener("change", () => {
-                    if (repNameDropdown.style.display === "block" || document.activeElement === repName) {
-                        showNameMatches();
-                    }
-                });
-            }
+        if (repCategory) {
+            repCategory.addEventListener("change", () => {
+                const activeField = autocompleteFields.find(f => document.activeElement === f.input || (f.dropdown && f.dropdown.style.display === "block"));
+                if (activeField) {
+                    activeField.input.dispatchEvent(new Event('focus'));
+                }
+            });
         }
 
         AF.triggerCreateNewFicha = (fichaType = 'new_arrival', prefillData = null) => {
@@ -1199,10 +1236,6 @@
                             </button>
                             <button type="button" class="btn btn-xs btn-primary btn-print-ficha" data-id="${asset.id}" style="padding: 4px 8px; font-size: 11px; height: auto;">
                                 <i data-lucide="printer" style="width: 12px; height: 12px; margin-right: 4px;"></i> Imprimir
-                            </button>
-                            <button type="button" class="btn btn-xs btn-danger btn-delete-ficha" data-id="${asset.id}" style="padding: 4px 8px; font-size: 11px; background: var(--danger); border-color: var(--danger); color: white; height: auto;">
-                                <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
-                            </button>
                         </div>
                     </td>
                 `;
@@ -1233,19 +1266,6 @@
                 });
             });
 
-            listBody.querySelectorAll(".btn-delete-ficha").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    const id = btn.getAttribute("data-id");
-                    if (confirm("¿Estás seguro de que deseas eliminar este bien y su ficha técnica permanentemente?")) {
-                        AF.state.assets = AF.state.assets.filter(a => a.id !== id);
-                        AF.saveStore();
-                        AF.renderReportsList();
-                        if (AF.renderCatalogTable) AF.renderCatalogTable();
-                        if (AF.renderDashboardMetrics) AF.renderDashboardMetrics();
-                        AF.showToast("Ficha técnica y bien eliminados correctamente.", "success");
-                    }
-                });
-            });
         };
 
         // Bind back buttons
@@ -1345,18 +1365,50 @@
             }
         });
 
-        // Setup datalist for Cartas from Trámite
+        // Setup autocomplete dropdown for Cartas from Trámite
         const repCartaInput = document.getElementById("rep-carta");
-        if (repCartaInput) {
-            repCartaInput.addEventListener("focus", () => {
-                const datalist = document.getElementById("tramite-cartas-list");
-                if (datalist && AF.state && AF.state.documents) {
-                    datalist.innerHTML = "";
-                    AF.state.documents.forEach(doc => {
-                        const option = document.createElement("option");
-                        option.value = `${doc.docType} ${doc.docNro}`;
-                        datalist.appendChild(option);
+        const repCartaDropdown = document.getElementById("rep-carta-dropdown");
+        
+        if (repCartaInput && repCartaDropdown) {
+            const showCartaMatches = () => {
+                const currentValue = repCartaInput.value.trim().toLowerCase();
+                repCartaDropdown.innerHTML = "";
+                repCartaDropdown.style.display = "none";
+                
+                if (!AF.state || !AF.state.documents) return;
+                
+                let matches = AF.state.documents.map(doc => `${doc.docType} ${doc.docNro}`);
+                if (currentValue) {
+                    matches = matches.filter(m => m.toLowerCase().includes(currentValue));
+                }
+                
+                if (matches.length === 0) return;
+                
+                matches.forEach(m => {
+                    const item = document.createElement("div");
+                    item.className = "autocomplete-item";
+                    item.innerHTML = `<div style="font-weight: 600; font-size: 12px; color: var(--text-primary);">${m}</div>`;
+                    
+                    item.addEventListener("click", () => {
+                        repCartaInput.value = m;
+                        repCartaInput.dispatchEvent(new Event("input"));
+                        repCartaDropdown.innerHTML = "";
+                        repCartaDropdown.style.display = "none";
                     });
+                    
+                    repCartaDropdown.appendChild(item);
+                });
+                
+                repCartaDropdown.style.display = "block";
+            };
+            
+            repCartaInput.addEventListener("input", showCartaMatches);
+            repCartaInput.addEventListener("focus", showCartaMatches);
+            repCartaInput.addEventListener("click", showCartaMatches);
+            
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest("#rep-carta") && !e.target.closest("#rep-carta-dropdown")) {
+                    repCartaDropdown.style.display = "none";
                 }
             });
         }

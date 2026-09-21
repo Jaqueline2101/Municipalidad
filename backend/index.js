@@ -19,11 +19,8 @@ if (fs.existsSync(frontendDist)) {
     console.log("[Backend] Sirviendo archivos estáticos del frontend desde:", frontendDist);
 }
 
-// Dedicated directory for documents in workspace root
-const docsDir = path.join(__dirname, '..', 'documentos_tramite');
-if (!fs.existsSync(docsDir)) {
-    fs.mkdirSync(docsDir, { recursive: true });
-}
+// Se usará SQLite directamente, sin guardar archivos en disco.
+// (docsDir removido para alojamiento en servidor)
 
 // Helper to get MIME type from file extension
 function getMimeType(filename) {
@@ -52,13 +49,7 @@ app.get('/documentos/:filename', async (req, res) => {
             return res.send(fileRow.file_data);
         }
 
-        // 2. Search on disk as fallback
-        const filePath = path.join(docsDir, filename);
-        if (fs.existsSync(filePath)) {
-            const mimeType = getMimeType(filename);
-            res.setHeader('Content-Type', mimeType);
-            return res.sendFile(filePath);
-        }
+        // 2. Búsqueda en disco deshabilitada
 
         res.status(404).send("Archivo no encontrado.");
     } catch (error) {
@@ -69,36 +60,7 @@ app.get('/documentos/:filename', async (req, res) => {
 
 // Helper to migrate files from disk to the SQLite database on startup
 async function migrateDiskFilesToDb() {
-    try {
-        if (!fs.existsSync(docsDir)) {
-            return;
-        }
-        const files = fs.readdirSync(docsDir);
-        let count = 0;
-        for (const file of files) {
-            const filePath = path.join(docsDir, file);
-            const stats = fs.statSync(filePath);
-            if (stats.isFile()) {
-                const existing = await dbGet("SELECT filename FROM document_files WHERE filename = ?", [file]);
-                if (!existing) {
-                    const fileBuffer = fs.readFileSync(filePath);
-                    const mimeType = getMimeType(file);
-                    await dbRun(
-                        "INSERT INTO document_files (filename, file_data, mime_type) VALUES (?, ?, ?)",
-                        [file, fileBuffer, mimeType]
-                    );
-                    count++;
-                }
-            }
-        }
-        if (count > 0) {
-            console.log(`[PatriGest Migration] Migración completada. ${count} archivos locales guardados en la base de datos SQLite.`);
-        } else {
-            console.log("[PatriGest Migration] Todos los archivos locales ya se encuentran en SQLite.");
-        }
-    } catch (err) {
-        console.error("[PatriGest Migration] Error al migrar archivos locales a la base de datos:", err);
-    }
+    console.log("[PatriGest Migration] Migración de disco a DB deshabilitada (modo servidor).");
 }
 
 // Initialize SQLite database
@@ -136,21 +98,7 @@ async function findDocumentFile(docType, docNro, prefix = '') {
         console.error("Error al buscar archivo coincidente en SQLite:", err);
     }
 
-    // 2. Search disk fallback
-    if (fs.existsSync(docsDir)) {
-        try {
-            const files = fs.readdirSync(docsDir);
-            const match = files.find(f => {
-                const ext = path.extname(f);
-                const nameWithoutExt = path.basename(f, ext);
-                return nameWithoutExt.toLowerCase() === baseName;
-            });
-            return match ? `/documentos/${match}` : null;
-        } catch (err) {
-            console.error("Error reading documents directory:", err);
-            return null;
-        }
-    }
+    // 2. Búsqueda en disco deshabilitada
     return null;
 }
 
@@ -362,9 +310,7 @@ app.post('/api/upload', async (req, res) => {
         return res.status(400).json({ error: "Nombre de archivo, datos, tipo y número de documento son requeridos." });
     }
     try {
-        if (!fs.existsSync(docsDir)) {
-            fs.mkdirSync(docsDir, { recursive: true });
-        }
+
 
         // Obtener el MIME type de los datos Base64, o usar el helper como plan B
         const mimeType = fileData.match(/^data:(.*?);base64,/)?.[1] || getMimeType(filename);
@@ -387,10 +333,7 @@ app.post('/api/upload', async (req, res) => {
         );
         console.log(`[Backend] Archivo de trámite guardado en base de datos: ${cleanFilename}`);
 
-        // 2. Guardar archivo decodificado en disco
-        const filePath = path.join(docsDir, cleanFilename);
-        fs.writeFileSync(filePath, base64Data, 'base64');
-        console.log(`[Backend] Archivo de trámite guardado en disco: ${filePath}`);
+        // 2. Guardar archivo en disco deshabilitado
 
         res.json({
             success: true,

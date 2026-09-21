@@ -1,34 +1,4 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const dbPath = path.resolve(__dirname, 'database.sqlite');
-const db = new sqlite3.Database(dbPath);
-
-const dbRun = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function(err) {
-            if (err) reject(err);
-            else resolve(this);
-        });
-    });
-};
-
-const dbGet = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
-    });
-};
-
-const dbAll = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-};
+const { dbRun, dbGet, dbAll } = require('./database');
 
 const generateId = (prefix) => prefix + '-' + Math.random().toString(36).substr(2, 9);
 
@@ -88,9 +58,7 @@ const createCapilla = async () => {
         console.log(`Estructura creada. Se reasignaron exitosamente ${updatedCount} activos a La Capilla.`);
     } catch (err) {
         console.error("Error al actualizar:", err);
-    } finally {
-        db.close();
-    }
+        process.exit(0);
 };
 
 createCapilla();
