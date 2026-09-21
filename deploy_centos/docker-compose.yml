@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    image: samuel910/municipalidad-app:latest
+    container_name: municipalidad_app
+    ports:
+      # Expone la aplicación en el puerto 8080 del servidor físico
+      - "8080:5000"
+    volumes:
+      # Persistencia de la base de datos (:z para SELinux en CentOS)
+      - ./backend/database.sqlite:/app/backend/database.sqlite:z
+      # Persistencia de los documentos
+      - ./documentos_tramite:/app/documentos_tramite:z
+    restart: unless-stopped
