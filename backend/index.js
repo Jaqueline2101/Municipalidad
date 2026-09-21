@@ -63,12 +63,12 @@ async function migrateDiskFilesToDb() {
     console.log("[PatriGest Migration] Migración de disco a DB deshabilitada (modo servidor).");
 }
 
-// Initialize SQLite database
+// Initialize MySQL database
 initDb().then(async () => {
-    console.log("[PatriGest Backend] Base de datos SQLite inicializada.");
+    console.log("[PatriGest Backend] Base de datos MySQL inicializada.");
     await migrateDiskFilesToDb();
 }).catch(err => {
-    console.error("[PatriGest Backend] Error al inicializar SQLite:", err);
+    console.error("[PatriGest Backend] Error al inicializar MySQL:", err);
 });
 
 // Helper to sanitize filenames
@@ -95,7 +95,7 @@ async function findDocumentFile(docType, docNro, prefix = '') {
             return `/documentos/${match.filename}`;
         }
     } catch (err) {
-        console.error("Error al buscar archivo coincidente en SQLite:", err);
+        console.error("Error al buscar archivo coincidente en MySQL:", err);
     }
 
     // 2. Búsqueda en disco deshabilitada
@@ -122,7 +122,7 @@ app.get('/api/stream', (req, res) => {
     });
 });
 
-// Endpoint para comprobar estado y obtener todo el estado inicial de base de datos
+// Endpoint para comprobar estado y obtener todo el estado inicial de la base de datos
 app.get('/api/state', async (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     try {
@@ -326,9 +326,9 @@ app.post('/api/upload', async (req, res) => {
         // Convertir a buffer para guardar como BLOB
         const fileBuffer = Buffer.from(base64Data, 'base64');
 
-        // 1. Guardar en la base de datos (SQLite)
+        // 1. Guardar en la base de datos (MySQL)
         await dbRun(
-            "INSERT OR REPLACE INTO document_files (filename, file_data, mime_type) VALUES (?, ?, ?)",
+            "REPLACE INTO document_files (filename, file_data, mime_type) VALUES (?, ?, ?)",
             [cleanFilename, fileBuffer, mimeType]
         );
         console.log(`[Backend] Archivo de trámite guardado en base de datos: ${cleanFilename}`);
