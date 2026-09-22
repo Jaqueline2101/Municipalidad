@@ -1,7 +1,6 @@
 FROM node:18-alpine
 
-# Instalar dependencias de compilación requeridas por sqlite3 en Alpine
-RUN apk add --no-cache python3 make g++ sqlite
+# Dependencias de SQLite removidas, mysql2 no requiere compilación nativa
 
 # Configurar el directorio de trabajo
 WORKDIR /app
