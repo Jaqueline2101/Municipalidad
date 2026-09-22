@@ -5,11 +5,11 @@ services:
     image: samuel910/municipalidad-app:latest
     container_name: municipalidad_app
     ports:
-      # Expone la aplicación en el puerto 8080 del servidor físico para evitar conflictos
-      - "8080:5000"
+      # Expone la aplicación en el puerto web por defecto (80)
+      - "80:5000"
     environment:
-      # IP Pública de tu base de datos MySQL (cámbiala si es necesario)
-      - DB_HOST=190.187.82.2
+      # IP Pública de tu base de datos MySQL
+      - DB_HOST=190.187.82.246
       - DB_USER=root
       - DB_PASSWORD=
       - DB_NAME=patrigest
